@@ -156,3 +156,8 @@ FPK Smart Food AI is not just a food menu. It turns campus break time into a pre
 - Add QR pickup
 - Improve AI waiting time
 - Deploy frontend and backend
+
+## API Examples
+- GET /meals
+- POST /orders
+- PATCH /orders/{id}/status
