@@ -150,3 +150,9 @@ FPK Smart Food AI is not just a food menu. It turns campus break time into a pre
 4. Switch to the vendor dashboard and change the order status from `Pending` to `Preparing` to `Ready`.
 5. Show the charts and AI insights as the future-facing part of the MVP.
 6. Close with the business model: a small 1 to 2 MAD service fee, vendor adoption, and campus expansion.
+
+## Demo Roadmap
+- Add screenshots
+- Add QR pickup
+- Improve AI waiting time
+- Deploy frontend and backend
