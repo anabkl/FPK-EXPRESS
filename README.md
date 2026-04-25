@@ -168,7 +168,15 @@ FPK Smart Food AI is not just a food menu. It turns campus break time into a pre
 - GET /dashboard/stats
 - GET /ai/recommendations
 
+<<<<<<< HEAD
+## Features
+- Preorder system
+- Vendor dashboard
+- AI recommendations
+- Real-time status
+=======
 ## Deployment
 - Frontend: Vercel
 - Backend: Render or Docker
 - API Docs: /docs endpoint
+>>>>>>> main
