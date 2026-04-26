@@ -19,8 +19,8 @@ export default function Navbar({ activeView, onNavigate, isApiOnline }) {
             <ChefHat size={24} />
           </span>
           <span>
-            <span className="block text-base font-black tracking-tight">FPK Smart Food AI</span>
-            <span className="block text-xs font-medium text-slate-500">Preorder & Pickup · Khouribga</span>
+            <span className="block text-base font-black tracking-tight">FPK-EXPRESS</span>
+            <span className="block text-xs font-medium text-slate-500">AI-powered preorder & pickup</span>
           </span>
         </button>
 

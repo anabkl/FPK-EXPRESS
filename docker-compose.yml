@@ -2,7 +2,7 @@ services:
   backend:
     build:
       context: ./backend
-    container_name: fpk-smart-food-api
+    container_name: fpk-express-api
     environment:
       DATABASE_URL: sqlite:////data/fpk_smart_food.db
     ports:
@@ -13,7 +13,7 @@ services:
   frontend:
     build:
       context: ./frontend
-    container_name: fpk-smart-food-web
+    container_name: fpk-express-web
     environment:
       VITE_API_URL: http://localhost:8000
     ports:

@@ -1,1 +1,1 @@
-"""FPK Smart Food AI backend package."""
+"""FPK-EXPRESS backend package."""

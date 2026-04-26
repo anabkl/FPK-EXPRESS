@@ -1,42 +1,43 @@
-# FPK Smart Food AI
+# FPK-EXPRESS
 
-Preorder & Pickup Platform for FPK Khouribga Students.
+AI-powered preorder & pickup platform for FPK Khouribga students.
 
-FPK Smart Food AI is a V1 MVP that helps students preorder affordable meals and pick them up without waiting in long lines. It is designed from real field-survey data collected from 23 FPK Khouribga students.
+FPK-EXPRESS is a V1 MVP that helps students preorder affordable meals and pick them up without waiting in long food or coffee queues. It is built from real field-survey validation with 23 FPK Khouribga students and is designed to feel like a credible campus startup product, not a classroom mockup.
 
 ## Problem Statement
 
-Students at FPK Khouribga struggle to find fast, affordable, and healthy meals because of long waiting lines and limited practical food alternatives. This wastes break time, creates stress, and sometimes pushes students to skip meals or eat badly.
+Students at FPK Khouribga lose valuable break time waiting in food and coffee queues. The lack of fast, affordable, and healthier alternatives creates stress, late arrivals, and skipped or low-quality meals.
 
 ## Survey Validation
 
 - 23 students answered the questionnaire.
-- More than 81% wait 15 minutes or more to buy food or coffee.
-- Around 95% sometimes or often skip meals or eat badly to avoid being late.
+- More than 81% wait 15 minutes or more.
+- Around 95% sometimes or often skip meals or eat badly.
 - 100% are interested in a preorder service.
-- 66.7% are willing to pay a small service fee of 1 to 2 MAD.
-- Main complaints: high prices, hygiene concerns, lack of healthy options, limited service hours.
+- 66.7% are willing to pay a small 1-2 MAD service fee.
+- Main complaints: high prices, hygiene concerns, lack of healthy options, and limited service hours.
 
 ## Features
 
-- Premium landing page with survey stats, problem, solution, workflow, AI preview, and meal preview.
-- Student side with meal list, search, category filters, preorder modal, pickup time, estimated waiting time, and confirmation.
+- Premium landing page with hero, survey stats, problem, solution, workflow, AI preview, and meal preview.
+- Student side with meal list, search, category filters, preorder modal, pickup time, estimated wait, and confirmation.
 - Student dashboard with order status: `Pending -> Preparing -> Ready`.
 - Vendor dashboard with add meal form, menu management, order status updates, revenue cards, and Recharts analytics.
-- Simple AI services for meal recommendations, estimated waiting time, and peak-hour prediction.
+- AI-like services for popular meal recommendations, estimated waiting time, and peak-hour prediction.
 - Seeded Moroccan/FPK sample meals priced from 5 MAD to 35 MAD.
-- No authentication in V1; mock student/vendor modes keep the demo frictionless.
+- Mock student/vendor modes for a smooth V1 demo without authentication complexity.
 
 ## Architecture
 
 ```text
-FPK Smart Food AI
+FPK-EXPRESS
 ├── frontend/      React + Vite + TailwindCSS + Framer Motion + Lucide + Recharts
 ├── backend/       FastAPI + SQLite + SQLAlchemy + Pydantic
+├── docs/          roadmap and contribution docs
 └── docker-compose.yml
 ```
 
-The frontend calls the FastAPI backend through `VITE_API_URL`. If the API is not running yet, the frontend falls back to demo data so the presentation remains smooth.
+The frontend calls the FastAPI backend through `VITE_API_URL`. If the API is unavailable, the frontend falls back to demo data so the presentation remains smooth.
 
 ## Tech Stack
 
@@ -74,7 +75,7 @@ Deployment:
 | GET | `/orders` | List orders |
 | PATCH | `/orders/{id}/status` | Update order status |
 | GET | `/dashboard/stats` | Vendor dashboard stats and chart data |
-| GET | `/ai/recommendations` | AI-like meal recommendations |
+| GET | `/ai/recommendations` | AI-powered meal recommendations |
 | GET | `/ai/peak-hours` | Peak-hour prediction data |
 
 ## Run Locally on macOS
@@ -118,18 +119,32 @@ Then open:
 - Backend: http://localhost:8000
 - API Docs: http://localhost:8000/docs
 
-## Screenshots Placeholders
+## Screenshots
 
 Add screenshots here after running the demo:
 
 - `screenshots/landing-page.png`
-- `screenshots/student-order-flow.png`
+- `screenshots/student-dashboard.png`
 - `screenshots/vendor-dashboard.png`
+- `screenshots/ai-insights.png`
 - `screenshots/api-docs.png`
 
-## Why This Solution Is Innovative
+## Demo Flow
 
-FPK Smart Food AI is not just a food menu. It turns campus break time into a predictable pickup system. The vendor sees demand earlier, students recover lost time, and the platform can learn which meals and hours create pressure. Even the V1 creates measurable value: shorter queues, better meal planning, and a small service-fee business model validated by the survey.
+1. Open landing page.
+2. Filter meals.
+3. Place preorder.
+4. Open vendor dashboard.
+5. Change order status from `Pending` to `Ready`.
+6. Show AI insights and analytics.
+
+## Why This Is Not Just A School Project
+
+- Validated problem: the MVP starts from field data, not assumptions.
+- Real users: the survey reflects actual FPK Khouribga student behavior and pain points.
+- Startup business model: 66.7% willingness to pay a 1-2 MAD fee supports a simple service-fee path.
+- AI insights: recommendations, waiting-time estimation, and peak-hour prediction create operational value.
+- Scalable architecture: React/Vite frontend, FastAPI backend, SQLite for V1, and Docker for repeatable deployment.
 
 ## Future Improvements
 
@@ -142,44 +157,28 @@ FPK Smart Food AI is not just a food menu. It turns campus break time into a pre
 - Push notifications when an order becomes ready.
 - Admin dashboard for FPK entrepreneurship reporting.
 
-## How to Present It to the Professor
+## How To Present It To The Professor
 
 1. Start with the validated problem and show the survey numbers.
 2. Open the landing page and explain the value proposition in one sentence.
 3. Switch to the student side, filter meals, place a preorder, and show the confirmation.
 4. Switch to the vendor dashboard and change the order status from `Pending` to `Preparing` to `Ready`.
 5. Show the charts and AI insights as the future-facing part of the MVP.
-6. Close with the business model: a small 1 to 2 MAD service fee, vendor adoption, and campus expansion.
+6. Close with the business model: a small 1-2 MAD service fee, vendor adoption, and campus expansion.
 
-## Demo Roadmap
-- Add screenshots
-- Add QR pickup
-- Improve AI waiting time
-- Deploy frontend and backend
+## Verification
 
-## API Examples
-- GET /meals
-- POST /orders
-- PATCH /orders/{id}/status
+Recommended checks before pushing:
 
-## API Endpoints Summary
-- GET /meals
-- POST /orders
-- GET /dashboard/stats
-- GET /ai/recommendations
+```bash
+cd frontend
+npm run build
+```
 
-<<<<<<< HEAD
-## Features
-- Preorder system
-- Vendor dashboard
-- AI recommendations
-- Real-time status
-=======
-## Deployment
-- Frontend: Vercel
-- Backend: Render or Docker
-- API Docs: /docs endpoint
->>>>>>> main
+```bash
+PYTHONPYCACHEPREFIX=/tmp/fpk-express-pycache python3 -m py_compile backend/app/*.py
+```
 
-## Quick Fix
-Small README polish for the demo.
+```bash
+docker compose config
+```

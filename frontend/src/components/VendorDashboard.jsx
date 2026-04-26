@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { Clock, DollarSign, Flame, ListOrdered, Plus, Store } from "lucide-react";
 import ChartsSection from "./ChartsSection.jsx";
 import { categories } from "../data/mockData.js";
@@ -57,7 +58,15 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
         {cards.map((card) => {
           const Icon = card.icon;
           return (
-            <div key={card.label} className="card p-5">
+            <motion.div
+              key={card.label}
+              initial={{ opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.2 }}
+              transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
+              whileHover={{ y: -5, scale: 1.01 }}
+              className="card p-5 transition-shadow hover:shadow-glow"
+            >
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-bold text-slate-500">{card.label}</p>
@@ -67,7 +76,7 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
                   <Icon size={24} />
                 </div>
               </div>
-            </div>
+            </motion.div>
           );
         })}
       </div>

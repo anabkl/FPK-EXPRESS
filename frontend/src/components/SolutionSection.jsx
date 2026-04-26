@@ -29,7 +29,7 @@ export default function SolutionSection() {
             Une cantine plus prévisible, pensée pour le rythme FPK.
           </h2>
           <p className="mt-4 text-lg leading-8 text-slate-700">
-            FPK Smart Food AI transforme les pauses en créneaux organisés: moins d'attente, plus de choix, et une
+            FPK-EXPRESS transforme les pauses en créneaux organisés: moins d'attente, plus de choix, et une
             meilleure visibilité pour les vendeurs.
           </p>
         </div>

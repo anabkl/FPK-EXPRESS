@@ -26,8 +26,8 @@ from .seed import seed_database
 SERVICE_FEE = 1.0
 
 app = FastAPI(
-    title="FPK Smart Food AI API",
-    description="Preorder and pickup API for FPK Khouribga students.",
+    title="FPK-EXPRESS API",
+    description="AI-powered preorder and pickup API for FPK Khouribga students.",
     version="1.0.0",
 )
 
@@ -54,7 +54,7 @@ def on_startup() -> None:
 
 @app.get("/health")
 def health_check() -> dict:
-    return {"status": "ok", "service": "FPK Smart Food AI", "timestamp": datetime.utcnow().isoformat()}
+    return {"status": "ok", "service": "FPK-EXPRESS", "timestamp": datetime.utcnow().isoformat()}
 
 
 @app.get("/meals", response_model=list[MealRead])

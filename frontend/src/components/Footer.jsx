@@ -9,8 +9,10 @@ export default function Footer({ onNavigate }) {
             <ChefHat size={23} />
           </div>
           <div>
-            <p className="font-black text-navy">FPK Smart Food AI</p>
-            <p className="text-sm font-medium text-slate-500">Preorder & Pickup Platform for FPK Khouribga Students</p>
+            <p className="font-black text-navy">FPK-EXPRESS</p>
+            <p className="text-sm font-medium text-slate-500">
+              AI-powered preorder & pickup platform for FPK Khouribga students.
+            </p>
           </div>
         </div>
 
@@ -23,7 +25,7 @@ export default function Footer({ onNavigate }) {
             <Store size={17} />
             Démo vendeur
           </button>
-          <a href="mailto:demo@fpk-smartfood.local" className="icon-button" aria-label="Contact">
+          <a href="mailto:demo@fpk-express.local" className="icon-button" aria-label="Contact">
             <Mail size={18} />
           </a>
         </div>
