@@ -182,3 +182,6 @@ PYTHONPYCACHEPREFIX=/tmp/fpk-express-pycache python3 -m py_compile backend/app/*
 ```bash
 docker compose config
 ```
+
+## Performance
+Optimized API and UI for fast response times.
