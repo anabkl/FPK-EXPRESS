@@ -41,7 +41,7 @@ The frontend calls the FastAPI backend through `VITE_API_URL`. If the API is una
 
 ## Tech Stack
 
-Frontend:
+Frontend :
 
 - React
 - Vite
@@ -50,7 +50,7 @@ Frontend:
 - Lucide React
 - Recharts
 
-Backend:
+Backend :
 
 - Python FastAPI
 - SQLite
@@ -58,7 +58,7 @@ Backend:
 - Pydantic
 - CORS middleware
 
-Deployment:
+Deployment :
 
 - Docker
 - Docker Compose
