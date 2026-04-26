@@ -183,5 +183,8 @@ PYTHONPYCACHEPREFIX=/tmp/fpk-express-pycache python3 -m py_compile backend/app/*
 docker compose config
 ```
 
+## Dark Mode
+Coming soon: dark mode support for better UX.
+
 ## Performance
-Optimized API and UI for fast response times.
+FPK-EXPRESS is designed with a lightweight frontend, optimized API structure, and Docker-ready deployment workflow.
