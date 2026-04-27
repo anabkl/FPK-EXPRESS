@@ -146,6 +146,15 @@ Add screenshots here after running the demo:
 - AI insights: recommendations, waiting-time estimation, and peak-hour prediction create operational value.
 - Scalable architecture: React/Vite frontend, FastAPI backend, SQLite for V1, and Docker for repeatable deployment.
 
+## Resilience UX
+
+FPK-EXPRESS includes graceful UI states for real demo conditions:
+
+- API failures show a retryable error banner while preserving demo data.
+- Loading states make initial API synchronization visible.
+- Empty states cover no meals found, no orders available, and no AI recommendations available.
+- Local fallback behavior keeps the student and vendor flows usable when the backend is temporarily unavailable.
+
 ## Future Improvements
 
 - Student accounts and vendor accounts.

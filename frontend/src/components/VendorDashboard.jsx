@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, DollarSign, Flame, ListOrdered, Plus, Store } from "lucide-react";
+import { ClipboardList, Clock, DollarSign, Flame, ListOrdered, Plus, Store, Utensils } from "lucide-react";
 import ChartsSection from "./ChartsSection.jsx";
+import EmptyState from "./EmptyState.jsx";
 import { categories } from "../data/mockData.js";
 
 const defaultMeal = {
@@ -195,31 +196,42 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
             <p className="rounded-lg bg-slate-100 px-3 py-2 text-sm font-bold text-slate-600">{orders.length} commandes</p>
           </div>
 
-          <div className="mt-5 space-y-3">
-            {orders.slice(0, 8).map((order) => (
-              <div key={order.id} className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_auto] md:items-center">
-                <div className="min-w-0">
-                  <p className="truncate font-black text-navy">
-                    #{order.id} · {order.meal?.name} x{order.quantity}
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-slate-500">
-                    {order.student_name} · {order.student_department} · pickup {order.pickup_time}
-                  </p>
+          {orders.length > 0 ? (
+            <div className="mt-5 space-y-3">
+              {orders.slice(0, 8).map((order) => (
+                <div key={order.id} className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_auto] md:items-center">
+                  <div className="min-w-0">
+                    <p className="truncate font-black text-navy">
+                      #{order.id} · {order.meal?.name} x{order.quantity}
+                    </p>
+                    <p className="mt-1 text-sm font-medium text-slate-500">
+                      {order.student_name} · {order.student_department} · pickup {order.pickup_time}
+                    </p>
+                  </div>
+                  <select
+                    value={order.status}
+                    onChange={(event) => onStatusChange(order.id, event.target.value)}
+                    className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold outline-none focus:border-primary"
+                  >
+                    {statuses.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <select
-                  value={order.status}
-                  onChange={(event) => onStatusChange(order.id, event.target.value)}
-                  className="h-10 rounded-lg border border-slate-200 bg-white px-3 text-sm font-bold outline-none focus:border-primary"
-                >
-                  {statuses.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-5">
+              <EmptyState
+                icon={ClipboardList}
+                title="Aucune commande disponible"
+                message="Les nouvelles précommandes étudiantes apparaîtront ici dès leur confirmation."
+                compact
+              />
+            </div>
+          )}
         </div>
       </div>
 
@@ -233,19 +245,30 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
             {meals.filter((meal) => meal.is_available).length} actifs
           </p>
         </div>
-        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {meals.map((meal) => (
-            <div key={meal.id} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
-              <div className="flex items-center gap-3">
-                <img className="h-14 w-14 rounded-lg object-cover" src={meal.image_url} alt={meal.name} />
-                <div className="min-w-0">
-                  <p className="truncate font-black text-navy">{meal.name}</p>
-                  <p className="text-sm font-bold text-slate-500">{meal.price} MAD · {meal.preparation_time} min</p>
+        {meals.length > 0 ? (
+          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {meals.map((meal) => (
+              <div key={meal.id} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <div className="flex items-center gap-3">
+                  <img className="h-14 w-14 rounded-lg object-cover" src={meal.image_url} alt={meal.name} />
+                  <div className="min-w-0">
+                    <p className="truncate font-black text-navy">{meal.name}</p>
+                    <p className="text-sm font-bold text-slate-500">{meal.price} MAD · {meal.preparation_time} min</p>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="mt-5">
+            <EmptyState
+              icon={Utensils}
+              title="Aucun plat au menu"
+              message="Ajoutez un premier plat pour commencer à recevoir des précommandes."
+              compact
+            />
+          </div>
+        )}
       </div>
 
       <ChartsSection stats={stats} />

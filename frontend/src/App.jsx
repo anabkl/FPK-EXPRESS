@@ -12,6 +12,8 @@ import OrderModal from "./components/OrderModal.jsx";
 import StudentDashboard from "./components/StudentDashboard.jsx";
 import VendorDashboard from "./components/VendorDashboard.jsx";
 import Footer from "./components/Footer.jsx";
+import ErrorState from "./components/ErrorState.jsx";
+import LoadingState from "./components/LoadingState.jsx";
 import { api } from "./api/client.js";
 import {
   sampleMeals,
@@ -44,8 +46,11 @@ export default function App() {
   const [selectedMeal, setSelectedMeal] = useState(null);
   const [currentOrderId, setCurrentOrderId] = useState(sampleOrders[1]?.id);
   const [isApiOnline, setIsApiOnline] = useState(false);
+  const [apiError, setApiError] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
 
-  async function refreshData() {
+  async function refreshData({ showLoading = false } = {}) {
+    if (showLoading) setIsLoading(true);
     try {
       const [mealData, orderData, statData, recommendationData, peakData] = await Promise.all([
         api.getMeals(),
@@ -60,14 +65,18 @@ export default function App() {
       setRecommendations(recommendationData);
       setPeakHours(peakData);
       setIsApiOnline(true);
+      setApiError("");
       if (!currentOrderId && orderData.length) setCurrentOrderId(orderData[0].id);
     } catch {
       setIsApiOnline(false);
+      setApiError("Le backend n'est pas joignable pour le moment. Le mode démo reste disponible avec les données locales.");
+    } finally {
+      setIsLoading(false);
     }
   }
 
   useEffect(() => {
-    refreshData();
+    refreshData({ showLoading: true });
     const timer = window.setInterval(refreshData, 20000);
     return () => window.clearInterval(timer);
   }, []);
@@ -82,6 +91,7 @@ export default function App() {
       const created = await api.createOrder(payload);
       setOrders((previous) => [created, ...previous]);
       setCurrentOrderId(created.id);
+      setApiError("");
       await refreshData();
       return created;
     } catch {
@@ -98,6 +108,7 @@ export default function App() {
       };
       setOrders((previous) => [localOrder, ...previous]);
       setCurrentOrderId(localOrder.id);
+      setApiError("Commande ajoutée en mode démo local. Elle sera synchronisée quand l'API sera disponible.");
       return localOrder;
     }
   }
@@ -106,9 +117,11 @@ export default function App() {
     try {
       const created = await api.createMeal(payload);
       setMeals((previous) => [created, ...previous]);
+      setApiError("");
       await refreshData();
     } catch {
       setMeals((previous) => [{ id: Date.now(), ...payload }, ...previous]);
+      setApiError("Plat ajouté en mode démo local. Le backend n'a pas confirmé l'enregistrement.");
     }
   }
 
@@ -116,15 +129,33 @@ export default function App() {
     try {
       const updated = await api.updateOrderStatus(orderId, status);
       setOrders((previous) => previous.map((order) => (order.id === orderId ? updated : order)));
+      setApiError("");
       await refreshData();
     } catch {
       setOrders((previous) => previous.map((order) => (order.id === orderId ? { ...order, status } : order)));
+      setApiError("Statut modifié localement. La mise à jour API sera à refaire quand le backend sera disponible.");
     }
   }
 
   return (
     <div className="min-h-screen bg-canvas text-navy">
       <Navbar activeView={activeView} onNavigate={setActiveView} isApiOnline={isApiOnline} />
+
+      {(isLoading || apiError) && (
+        <div className="section-shell pt-4">
+          {isLoading ? (
+            <LoadingState label="Synchronisation avec l'API FPK-EXPRESS..." compact />
+          ) : (
+            <ErrorState
+              title="Mode démo activé"
+              message={apiError}
+              actionLabel="Réessayer"
+              onAction={() => refreshData({ showLoading: true })}
+              compact
+            />
+          )}
+        </div>
+      )}
 
       {activeView === "landing" && (
         <main>

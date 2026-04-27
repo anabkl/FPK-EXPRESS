@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
 import { Activity, BrainCircuit, Clock, Sparkles, TrendingUp } from "lucide-react";
+import EmptyState from "./EmptyState.jsx";
 
 export default function AIInsights({ recommendations, peakHours, stats }) {
   const summary = recommendations?.summary || {};
+  const recommendationItems = recommendations?.recommendations || [];
   const predictions = peakHours?.predictions || [];
   const topPredictions = predictions.slice(0, 5);
 
@@ -62,6 +64,17 @@ export default function AIInsights({ recommendations, peakHours, stats }) {
                 <p className="text-sm font-semibold leading-6">{summary.insight}</p>
               </div>
             </div>
+
+            {recommendationItems.length === 0 && (
+              <div className="mt-5">
+                <EmptyState
+                  icon={Sparkles}
+                  title="Aucune recommandation IA"
+                  message="Le moteur affichera ses suggestions dès que les données de menu seront disponibles."
+                  compact
+                />
+              </div>
+            )}
           </motion.div>
 
           <motion.div

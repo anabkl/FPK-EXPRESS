@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { Search, SearchX, SlidersHorizontal } from "lucide-react";
 import MealCard from "./MealCard.jsx";
+import EmptyState from "./EmptyState.jsx";
 import { categories } from "../data/mockData.js";
 
 export default function MealGrid({ meals, orders, onSelectMeal }) {
@@ -73,8 +74,17 @@ export default function MealGrid({ meals, orders, onSelectMeal }) {
       </div>
 
       {filteredMeals.length === 0 && (
-        <div className="mt-6 rounded-lg border border-dashed border-slate-300 bg-white p-8 text-center">
-          <p className="font-bold text-slate-600">Aucun repas trouvé pour ce filtre.</p>
+        <div className="mt-6">
+          <EmptyState
+            icon={SearchX}
+            title="Aucun repas trouvé"
+            message="Essayez une autre catégorie ou une recherche plus simple pour retrouver les options disponibles."
+            actionLabel="Réinitialiser les filtres"
+            onAction={() => {
+              setQuery("");
+              setCategory("Tous");
+            }}
+          />
         </div>
       )}
     </section>
