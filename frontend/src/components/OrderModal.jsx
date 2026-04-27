@@ -1,5 +1,11 @@
 import { useMemo, useState } from "react";
 import { CheckCircle2, Clock, Minus, Plus, ReceiptText, X } from "lucide-react";
+import {
+  DEPARTMENTS,
+  hasValidationErrors,
+  normalizeOrderPayload,
+  validateStudentOrder,
+} from "../utils/validation.js";
 
 function getDefaultPickupTime() {
   const date = new Date();
@@ -16,13 +22,27 @@ function getDefaultPickupTime() {
   return `${hours}:${minutes}`;
 }
 
-export default function OrderModal({ meal, orders, onClose, onSubmit }) {
+function fieldClass(hasError) {
+  return `mt-2 h-11 w-full rounded-lg border px-3 outline-none transition focus:ring-4 ${
+    hasError
+      ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-100"
+      : "border-slate-200 bg-white focus:border-primary focus:ring-orange-100"
+  }`;
+}
+
+function FieldError({ message }) {
+  if (!message) return null;
+  return <p className="mt-1 text-xs font-bold text-red-600">{message}</p>;
+}
+
+export default function OrderModal({ meal, orders, onClose, onSubmit, onToast }) {
   const [studentName, setStudentName] = useState("Étudiant FPK");
   const [department, setDepartment] = useState("GI");
   const [pickupTime, setPickupTime] = useState(getDefaultPickupTime());
   const [quantity, setQuantity] = useState(1);
   const [createdOrder, setCreatedOrder] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const estimatedWait = useMemo(() => {
     const activeOrders = orders.filter((order) => ["Pending", "Preparing"].includes(order.status)).length;
@@ -33,16 +53,46 @@ export default function OrderModal({ meal, orders, onClose, onSubmit }) {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setIsSubmitting(true);
-    const order = await onSubmit({
-      student_name: studentName,
-      student_department: department,
-      meal_id: meal.id,
-      quantity,
-      pickup_time: pickupTime,
+    const nextErrors = validateStudentOrder({ studentName, department, pickupTime, quantity });
+
+    if (hasValidationErrors(nextErrors)) {
+      setErrors(nextErrors);
+      onToast?.({
+        type: "error",
+        title: "Vérifiez la commande",
+        message: Object.values(nextErrors)[0],
+      });
+      return;
+    }
+
+    setErrors({});
+    try {
+      setIsSubmitting(true);
+      const order = await onSubmit(normalizeOrderPayload({
+        studentName,
+        department,
+        mealId: meal.id,
+        quantity,
+        pickupTime,
+      }));
+      setCreatedOrder(order);
+    } catch {
+      onToast?.({
+        type: "error",
+        title: "Commande non envoyée",
+        message: "Une erreur est survenue pendant la confirmation.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
+  function updateField(field, value) {
+    setErrors((current) => {
+      if (!current[field]) return current;
+      const { [field]: _removed, ...rest } = current;
+      return rest;
     });
-    setCreatedOrder(order);
-    setIsSubmitting(false);
   }
 
   return (
@@ -104,23 +154,33 @@ export default function OrderModal({ meal, orders, onClose, onSubmit }) {
                 <span className="text-sm font-bold text-slate-700">Nom étudiant</span>
                 <input
                   value={studentName}
-                  onChange={(event) => setStudentName(event.target.value)}
-                  className="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-primary focus:ring-4 focus:ring-orange-100"
+                  onChange={(event) => {
+                    setStudentName(event.target.value);
+                    updateField("studentName");
+                  }}
+                  className={fieldClass(errors.studentName)}
+                  aria-invalid={Boolean(errors.studentName)}
                   required
                 />
+                <FieldError message={errors.studentName} />
               </label>
 
               <label className="block">
                 <span className="text-sm font-bold text-slate-700">Département</span>
                 <select
                   value={department}
-                  onChange={(event) => setDepartment(event.target.value)}
-                  className="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-primary focus:ring-4 focus:ring-orange-100"
+                  onChange={(event) => {
+                    setDepartment(event.target.value);
+                    updateField("department");
+                  }}
+                  className={fieldClass(errors.department)}
+                  aria-invalid={Boolean(errors.department)}
                 >
-                  {["GI", "MIP", "SMA", "BCG", "PC", "SVI"].map((item) => (
+                  {DEPARTMENTS.map((item) => (
                     <option key={item}>{item}</option>
                   ))}
                 </select>
+                <FieldError message={errors.department} />
               </label>
 
               <label className="block">
@@ -128,10 +188,15 @@ export default function OrderModal({ meal, orders, onClose, onSubmit }) {
                 <input
                   type="time"
                   value={pickupTime}
-                  onChange={(event) => setPickupTime(event.target.value)}
-                  className="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-primary focus:ring-4 focus:ring-orange-100"
+                  onChange={(event) => {
+                    setPickupTime(event.target.value);
+                    updateField("pickupTime");
+                  }}
+                  className={fieldClass(errors.pickupTime)}
+                  aria-invalid={Boolean(errors.pickupTime)}
                   required
                 />
+                <FieldError message={errors.pickupTime} />
               </label>
 
               <div>
@@ -139,7 +204,10 @@ export default function OrderModal({ meal, orders, onClose, onSubmit }) {
                 <div className="mt-2 flex items-center gap-3">
                   <button
                     type="button"
-                    onClick={() => setQuantity((value) => Math.max(1, value - 1))}
+                    onClick={() => {
+                      setQuantity((value) => Math.max(1, value - 1));
+                      updateField("quantity");
+                    }}
                     className="icon-button"
                     aria-label="Diminuer la quantité"
                   >
@@ -150,13 +218,17 @@ export default function OrderModal({ meal, orders, onClose, onSubmit }) {
                   </span>
                   <button
                     type="button"
-                    onClick={() => setQuantity((value) => Math.min(10, value + 1))}
+                    onClick={() => {
+                      setQuantity((value) => Math.min(10, value + 1));
+                      updateField("quantity");
+                    }}
                     className="icon-button"
                     aria-label="Augmenter la quantité"
                   >
                     <Plus size={18} />
                   </button>
                 </div>
+                <FieldError message={errors.quantity} />
               </div>
 
               <div className="rounded-lg bg-softOrange p-4">
