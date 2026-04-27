@@ -14,6 +14,7 @@ import VendorDashboard from "./components/VendorDashboard.jsx";
 import Footer from "./components/Footer.jsx";
 import ErrorState from "./components/ErrorState.jsx";
 import LoadingState from "./components/LoadingState.jsx";
+import { ToastViewport, useToasts } from "./components/Toast.jsx";
 import { api } from "./api/client.js";
 import {
   sampleMeals,
@@ -37,6 +38,7 @@ const fallbackRecommendations = {
 };
 
 export default function App() {
+  const { toasts, showToast, removeToast } = useToasts();
   const [activeView, setActiveView] = useState("landing");
   const [meals, setMeals] = useState(sampleMeals);
   const [orders, setOrders] = useState(sampleOrders);
@@ -92,6 +94,11 @@ export default function App() {
       setOrders((previous) => [created, ...previous]);
       setCurrentOrderId(created.id);
       setApiError("");
+      showToast({
+        type: "success",
+        title: "Commande créée",
+        message: `${created.meal?.name || meal?.name || "Votre repas"} est confirmé pour ${created.pickup_time}.`,
+      });
       await refreshData();
       return created;
     } catch {
@@ -109,6 +116,11 @@ export default function App() {
       setOrders((previous) => [localOrder, ...previous]);
       setCurrentOrderId(localOrder.id);
       setApiError("Commande ajoutée en mode démo local. Elle sera synchronisée quand l'API sera disponible.");
+      showToast({
+        type: "warning",
+        title: "API indisponible",
+        message: "Commande créée en mode démo local.",
+      });
       return localOrder;
     }
   }
@@ -118,10 +130,20 @@ export default function App() {
       const created = await api.createMeal(payload);
       setMeals((previous) => [created, ...previous]);
       setApiError("");
+      showToast({
+        type: "success",
+        title: "Plat ajouté",
+        message: `${created.name} est maintenant disponible dans le menu.`,
+      });
       await refreshData();
     } catch {
       setMeals((previous) => [{ id: Date.now(), ...payload }, ...previous]);
       setApiError("Plat ajouté en mode démo local. Le backend n'a pas confirmé l'enregistrement.");
+      showToast({
+        type: "warning",
+        title: "API indisponible",
+        message: "Plat ajouté localement pour garder la démo fluide.",
+      });
     }
   }
 
@@ -130,15 +152,26 @@ export default function App() {
       const updated = await api.updateOrderStatus(orderId, status);
       setOrders((previous) => previous.map((order) => (order.id === orderId ? updated : order)));
       setApiError("");
+      showToast({
+        type: "success",
+        title: "Statut mis à jour",
+        message: `Commande #${orderId} passée à ${status}.`,
+      });
       await refreshData();
     } catch {
       setOrders((previous) => previous.map((order) => (order.id === orderId ? { ...order, status } : order)));
       setApiError("Statut modifié localement. La mise à jour API sera à refaire quand le backend sera disponible.");
+      showToast({
+        type: "warning",
+        title: "Mise à jour locale",
+        message: `Commande #${orderId} passée à ${status} en mode démo.`,
+      });
     }
   }
 
   return (
     <div className="min-h-screen bg-canvas text-navy">
+      <ToastViewport toasts={toasts} onDismiss={removeToast} />
       <Navbar activeView={activeView} onNavigate={setActiveView} isApiOnline={isApiOnline} />
 
       {(isLoading || apiError) && (
@@ -188,6 +221,7 @@ export default function App() {
             stats={stats}
             onAddMeal={handleAddMeal}
             onStatusChange={handleStatusChange}
+            onToast={showToast}
           />
         </main>
       )}
@@ -200,6 +234,7 @@ export default function App() {
           orders={orders}
           onClose={() => setSelectedMeal(null)}
           onSubmit={handleCreateOrder}
+          onToast={showToast}
         />
       )}
     </div>

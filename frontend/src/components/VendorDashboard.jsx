@@ -4,6 +4,7 @@ import { ClipboardList, Clock, DollarSign, Flame, ListOrdered, Plus, Store, Uten
 import ChartsSection from "./ChartsSection.jsx";
 import EmptyState from "./EmptyState.jsx";
 import { categories } from "../data/mockData.js";
+import { hasValidationErrors, normalizeMealPayload, validateMealForm } from "../utils/validation.js";
 
 const defaultMeal = {
   name: "",
@@ -18,18 +19,58 @@ const defaultMeal = {
 
 const statuses = ["Pending", "Preparing", "Ready", "Completed"];
 
-export default function VendorDashboard({ meals, orders, stats, onAddMeal, onStatusChange }) {
+function fieldClass(hasError) {
+  return `mt-2 h-11 w-full rounded-lg border px-3 outline-none transition focus:ring-4 ${
+    hasError
+      ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-100"
+      : "border-slate-200 bg-white focus:border-primary focus:ring-orange-100"
+  }`;
+}
+
+function textAreaClass(hasError) {
+  return `mt-2 min-h-24 w-full rounded-lg border p-3 outline-none transition focus:ring-4 ${
+    hasError
+      ? "border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-100"
+      : "border-slate-200 focus:border-primary focus:ring-orange-100"
+  }`;
+}
+
+function FieldError({ message }) {
+  if (!message) return null;
+  return <p className="mt-1 text-xs font-bold text-red-600">{message}</p>;
+}
+
+export default function VendorDashboard({ meals, orders, stats, onAddMeal, onStatusChange, onToast }) {
   const [form, setForm] = useState(defaultMeal);
+  const [errors, setErrors] = useState({});
 
   async function handleSubmit(event) {
     event.preventDefault();
-    await onAddMeal({
-      ...form,
-      price: Number(form.price),
-      preparation_time: Number(form.preparation_time),
-      popularity_score: Number(form.popularity_score),
-    });
+    const categoryValues = categories.filter((item) => item.value !== "Tous").map((item) => item.value);
+    const nextErrors = validateMealForm(form, categoryValues);
+
+    if (hasValidationErrors(nextErrors)) {
+      setErrors(nextErrors);
+      onToast?.({
+        type: "error",
+        title: "Plat non valide",
+        message: Object.values(nextErrors)[0],
+      });
+      return;
+    }
+
+    setErrors({});
+    await onAddMeal(normalizeMealPayload(form));
     setForm(defaultMeal);
+  }
+
+  function updateForm(field, value) {
+    setForm((current) => ({ ...current, [field]: value }));
+    setErrors((current) => {
+      if (!current[field]) return current;
+      const { [field]: _removed, ...rest } = current;
+      return rest;
+    });
   }
 
   const cards = [
@@ -99,11 +140,13 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
               <span className="text-sm font-bold text-slate-700">Nom</span>
               <input
                 value={form.name}
-                onChange={(event) => setForm({ ...form, name: event.target.value })}
-                className="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-primary focus:ring-4 focus:ring-orange-100"
+                onChange={(event) => updateForm("name", event.target.value)}
+                className={fieldClass(errors.name)}
                 placeholder="Ex: Wrap Poulet"
+                aria-invalid={Boolean(errors.name)}
                 required
               />
+              <FieldError message={errors.name} />
             </label>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -111,8 +154,9 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
                 <span className="text-sm font-bold text-slate-700">Catégorie</span>
                 <select
                   value={form.category}
-                  onChange={(event) => setForm({ ...form, category: event.target.value })}
-                  className="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-primary focus:ring-4 focus:ring-orange-100"
+                  onChange={(event) => updateForm("category", event.target.value)}
+                  className={fieldClass(errors.category)}
+                  aria-invalid={Boolean(errors.category)}
                 >
                   {categories.filter((item) => item.value !== "Tous").map((item) => (
                     <option key={item.value} value={item.value}>
@@ -120,6 +164,7 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
                     </option>
                   ))}
                 </select>
+                <FieldError message={errors.category} />
               </label>
 
               <label className="block">
@@ -129,9 +174,11 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
                   min="5"
                   max="35"
                   value={form.price}
-                  onChange={(event) => setForm({ ...form, price: event.target.value })}
-                  className="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-primary focus:ring-4 focus:ring-orange-100"
+                  onChange={(event) => updateForm("price", event.target.value)}
+                  className={fieldClass(errors.price)}
+                  aria-invalid={Boolean(errors.price)}
                 />
+                <FieldError message={errors.price} />
               </label>
             </div>
 
@@ -139,11 +186,13 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
               <span className="text-sm font-bold text-slate-700">Description</span>
               <textarea
                 value={form.description}
-                onChange={(event) => setForm({ ...form, description: event.target.value })}
-                className="mt-2 min-h-24 w-full rounded-lg border border-slate-200 p-3 outline-none focus:border-primary focus:ring-4 focus:ring-orange-100"
+                onChange={(event) => updateForm("description", event.target.value)}
+                className={textAreaClass(errors.description)}
                 placeholder="Ingrédients, format, bénéfice étudiant..."
+                aria-invalid={Boolean(errors.description)}
                 required
               />
+              <FieldError message={errors.description} />
             </label>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -154,9 +203,11 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
                   min="1"
                   max="30"
                   value={form.preparation_time}
-                  onChange={(event) => setForm({ ...form, preparation_time: event.target.value })}
-                  className="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-primary focus:ring-4 focus:ring-orange-100"
+                  onChange={(event) => updateForm("preparation_time", event.target.value)}
+                  className={fieldClass(errors.preparation_time)}
+                  aria-invalid={Boolean(errors.preparation_time)}
                 />
+                <FieldError message={errors.preparation_time} />
               </label>
               <label className="block">
                 <span className="text-sm font-bold text-slate-700">Popularité</span>
@@ -165,9 +216,11 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
                   min="0"
                   max="100"
                   value={form.popularity_score}
-                  onChange={(event) => setForm({ ...form, popularity_score: event.target.value })}
-                  className="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-primary focus:ring-4 focus:ring-orange-100"
+                  onChange={(event) => updateForm("popularity_score", event.target.value)}
+                  className={fieldClass(errors.popularity_score)}
+                  aria-invalid={Boolean(errors.popularity_score)}
                 />
+                <FieldError message={errors.popularity_score} />
               </label>
             </div>
 
@@ -175,9 +228,11 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
               <span className="text-sm font-bold text-slate-700">Image URL</span>
               <input
                 value={form.image_url}
-                onChange={(event) => setForm({ ...form, image_url: event.target.value })}
-                className="mt-2 h-11 w-full rounded-lg border border-slate-200 px-3 outline-none focus:border-primary focus:ring-4 focus:ring-orange-100"
+                onChange={(event) => updateForm("image_url", event.target.value)}
+                className={fieldClass(errors.image_url)}
+                aria-invalid={Boolean(errors.image_url)}
               />
+              <FieldError message={errors.image_url} />
             </label>
 
             <button className="primary-button">
