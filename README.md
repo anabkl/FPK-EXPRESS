@@ -155,6 +155,13 @@ FPK-EXPRESS includes graceful UI states for real demo conditions:
 - Empty states cover no meals found, no orders available, and no AI recommendations available.
 - Local fallback behavior keeps the student and vendor flows usable when the backend is temporarily unavailable.
 
+## User Feedback & Validation
+
+- Toast notifications confirm order creation, meal creation, order status updates, and API fallback behavior.
+- Student preorder validation covers name, department, pickup time, and meal quantity before submission.
+- Vendor meal validation checks required fields, MAD price range, preparation time, popularity score, and image URL.
+- Inline validation messages keep the forms mobile-friendly and easy to correct during a live demo.
+
 ## Future Improvements
 
 - Student accounts and vendor accounts.
