@@ -1,16 +1,17 @@
 import { motion } from "framer-motion";
 import { Clock, Flame, ShoppingBag, Star } from "lucide-react";
+import { cardReveal, subtleLift } from "../utils/motion.js";
 
 export default function MealCard({ meal, onSelectMeal, compact = false }) {
   const isPopular = meal.popularity_score >= 88;
 
   return (
     <motion.article
-      initial={{ opacity: 0, y: 18 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      variants={cardReveal}
+      initial="hidden"
+      whileInView="visible"
       viewport={{ once: true, amount: 0.18 }}
-      transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-      whileHover={{ y: -6 }}
+      whileHover={subtleLift}
       className="card overflow-hidden transition-shadow hover:shadow-glow"
     >
       <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">

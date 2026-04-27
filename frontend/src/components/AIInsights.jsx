@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Activity, BrainCircuit, Clock, Sparkles, TrendingUp } from "lucide-react";
 import EmptyState from "./EmptyState.jsx";
 import { AIInsightsSkeleton } from "./Skeletons.jsx";
+import { cardReveal, sectionReveal, staggerContainer, subtleLift } from "../utils/motion.js";
 
 export default function AIInsights({ recommendations, peakHours, stats, isLoading = false }) {
   const summary = recommendations?.summary || {};
@@ -14,7 +15,13 @@ export default function AIInsights({ recommendations, peakHours, stats, isLoadin
   return (
     <section className="bg-navy py-16 text-white">
       <div className="section-shell">
-        <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
+        <motion.div
+          variants={sectionReveal}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.25 }}
+          className="flex flex-col justify-between gap-5 md:flex-row md:items-end"
+        >
           <div>
             <p className="text-sm font-black uppercase tracking-[0.18em] text-orange-300">AI insights preview</p>
             <h2 className="mt-3 text-3xl font-black tracking-normal sm:text-4xl">
@@ -25,13 +32,18 @@ export default function AIInsights({ recommendations, peakHours, stats, isLoadin
             La V1 utilise les commandes, les scores de popularité et le rythme des pauses pour recommander les bons
             plats au bon moment.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="mt-9 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          className="mt-9 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]"
+        >
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
+            variants={cardReveal}
+            whileHover={subtleLift}
             className="rounded-lg border border-white/10 bg-white/10 p-5 backdrop-blur"
           >
             <div className="flex items-center gap-3">
@@ -52,11 +64,15 @@ export default function AIInsights({ recommendations, peakHours, stats, isLoadin
               ].map((item) => {
                 const Icon = item.icon;
                 return (
-                  <div key={item.label} className="rounded-lg border border-white/10 bg-white/10 p-4">
+                  <motion.div
+                    key={item.label}
+                    variants={cardReveal}
+                    className="rounded-lg border border-white/10 bg-white/10 p-4"
+                  >
                     <Icon size={20} className="text-orange-200" />
                     <p className="mt-3 text-xl font-black">{item.value}</p>
                     <p className="mt-1 text-sm text-slate-300">{item.label}</p>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
@@ -81,10 +97,8 @@ export default function AIInsights({ recommendations, peakHours, stats, isLoadin
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.08 }}
+            variants={cardReveal}
+            whileHover={subtleLift}
             className="rounded-lg border border-white/10 bg-white p-5 text-navy shadow-soft"
           >
             <div className="flex items-center justify-between gap-4">
@@ -96,8 +110,14 @@ export default function AIInsights({ recommendations, peakHours, stats, isLoadin
             </div>
 
             <div className="mt-6 space-y-4">
-              {topPredictions.map((point) => (
-                <div key={point.hour}>
+              {topPredictions.map((point, index) => (
+                <motion.div
+                  key={point.hour}
+                  initial={{ opacity: 0, x: -8 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: index * 0.035, duration: 0.28 }}
+                >
                   <div className="mb-2 flex items-center justify-between gap-3 text-sm">
                     <span className="font-black">{point.hour}</span>
                     <span className="font-semibold text-slate-500">{point.recommendation}</span>
@@ -108,11 +128,11 @@ export default function AIInsights({ recommendations, peakHours, stats, isLoadin
                       style={{ width: `${point.demand_score}%` }}
                     />
                   </div>
-                </div>
+                </motion.div>
               ))}
             </div>
           </motion.div>
-        </div>
+        </motion.div>
       </div>
     </section>
   );

@@ -5,6 +5,7 @@ import ChartsSection from "./ChartsSection.jsx";
 import EmptyState from "./EmptyState.jsx";
 import { DashboardSkeleton } from "./Skeletons.jsx";
 import { categories } from "../data/mockData.js";
+import { cardReveal, sectionReveal, staggerContainer, subtleLift } from "../utils/motion.js";
 import { hasValidationErrors, normalizeMealPayload, validateMealForm } from "../utils/validation.js";
 
 const defaultMeal = {
@@ -85,7 +86,12 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
 
   return (
     <section className="space-y-8">
-      <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+      <motion.div
+        variants={sectionReveal}
+        initial="hidden"
+        animate="visible"
+        className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end"
+      >
         <div>
           <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">Vendor side</p>
           <h1 className="mt-2 text-3xl font-black tracking-normal text-navy">Dashboard vendeur.</h1>
@@ -97,19 +103,22 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
           <Store size={18} />
           Mock vendor mode
         </div>
-      </div>
+      </motion.div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <motion.div
+        variants={staggerContainer}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+      >
         {cards.map((card) => {
           const Icon = card.icon;
           return (
             <motion.div
               key={card.label}
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.42, ease: [0.22, 1, 0.36, 1] }}
-              whileHover={{ y: -5, scale: 1.01 }}
+              variants={cardReveal}
+              whileHover={subtleLift}
               className="card p-5 transition-shadow hover:shadow-glow"
             >
               <div className="flex items-center justify-between gap-4">
@@ -124,10 +133,17 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
             </motion.div>
           );
         })}
-      </div>
+      </motion.div>
 
       <div className="grid gap-5 xl:grid-cols-[0.85fr_1.15fr]">
-        <form onSubmit={handleSubmit} className="card p-5">
+        <motion.form
+          onSubmit={handleSubmit}
+          variants={cardReveal}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          className="card p-5"
+        >
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-softOrange text-primary">
               <Plus size={22} />
@@ -243,9 +259,15 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
               Ajouter au menu
             </button>
           </div>
-        </form>
+        </motion.form>
 
-        <div className="card p-5">
+        <motion.div
+          variants={cardReveal}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          className="card p-5"
+        >
           <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
             <div>
               <p className="text-sm font-bold text-slate-500">Orders list</p>
@@ -256,8 +278,16 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
 
           {orders.length > 0 ? (
             <div className="mt-5 space-y-3">
-              {orders.slice(0, 8).map((order) => (
-                <div key={order.id} className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 md:grid-cols-[1fr_auto] md:items-center">
+              {orders.slice(0, 8).map((order, index) => (
+                <motion.div
+                  key={order.id}
+                  initial={{ opacity: 0, y: 8 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, amount: 0.4 }}
+                  transition={{ delay: index * 0.035, duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                  whileHover={{ x: 2 }}
+                  className="grid gap-3 rounded-lg border border-slate-200 bg-slate-50 p-4 transition-colors hover:border-orange-200 md:grid-cols-[1fr_auto] md:items-center"
+                >
                   <div className="min-w-0">
                     <p className="truncate font-black text-navy">
                       #{order.id} · {order.meal?.name} x{order.quantity}
@@ -277,7 +307,7 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
                       </option>
                     ))}
                   </select>
-                </div>
+                </motion.div>
               ))}
             </div>
           ) : (
@@ -290,10 +320,16 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
               />
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
 
-      <div className="card p-5">
+      <motion.div
+        variants={cardReveal}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.18 }}
+        className="card p-5"
+      >
         <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <p className="text-sm font-bold text-slate-500">Manage meals</p>
@@ -304,9 +340,20 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
           </p>
         </div>
         {meals.length > 0 ? (
-          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <motion.div
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+            className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4"
+          >
             {meals.map((meal) => (
-              <div key={meal.id} className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+              <motion.div
+                key={meal.id}
+                variants={cardReveal}
+                whileHover={subtleLift}
+                className="rounded-lg border border-slate-200 bg-slate-50 p-4 transition-colors hover:border-orange-200"
+              >
                 <div className="flex items-center gap-3">
                   <img className="h-14 w-14 rounded-lg object-cover" src={meal.image_url} alt={meal.name} />
                   <div className="min-w-0">
@@ -314,9 +361,9 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
                     <p className="text-sm font-bold text-slate-500">{meal.price} MAD · {meal.preparation_time} min</p>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : (
           <div className="mt-5">
             <EmptyState
@@ -327,7 +374,7 @@ export default function VendorDashboard({ meals, orders, stats, onAddMeal, onSta
             />
           </div>
         )}
-      </div>
+      </motion.div>
 
       <ChartsSection stats={stats} />
     </section>

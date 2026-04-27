@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { Clock3, HeartPulse, ShieldAlert, WalletCards } from "lucide-react";
+import { cardReveal, sectionReveal, staggerContainer, subtleLift } from "../utils/motion.js";
 
 const problems = [
   {
@@ -28,7 +29,13 @@ export default function ProblemSection() {
   return (
     <section className="bg-white py-16">
       <div className="section-shell">
-        <div className="max-w-3xl">
+        <motion.div
+          variants={sectionReveal}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.25 }}
+          className="max-w-3xl"
+        >
           <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">Problème validé</p>
           <h2 className="mt-3 text-3xl font-black tracking-normal text-navy sm:text-4xl">
             La pause devient une course contre la montre.
@@ -37,19 +44,23 @@ export default function ProblemSection() {
             L'enquête terrain montre un vrai blocage quotidien: attente, stress, manque d'options pratiques et impact
             direct sur la qualité des repas.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="mt-9 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {problems.map((problem, index) => {
+        <motion.div
+          variants={staggerContainer}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.2 }}
+          className="mt-9 grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+        >
+          {problems.map((problem) => {
             const Icon = problem.icon;
             return (
               <motion.div
                 key={problem.title}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: index * 0.05 }}
-                className="rounded-lg border border-slate-200 bg-slate-50 p-5"
+                variants={cardReveal}
+                whileHover={subtleLift}
+                className="rounded-lg border border-slate-200 bg-slate-50 p-5 transition-shadow hover:shadow-soft"
               >
                 <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-white text-primary shadow-sm">
                   <Icon size={22} />
@@ -59,7 +70,7 @@ export default function ProblemSection() {
               </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
     </section>
   );

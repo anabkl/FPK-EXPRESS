@@ -169,6 +169,12 @@ FPK-EXPRESS includes graceful UI states for real demo conditions:
 - Skeleton loaders support smoother loading for meal grids, dashboards, and AI insights.
 - Loading states preserve the local demo fallback behavior if the backend is unavailable.
 
+## Animation Polish
+
+- Landing sections use subtle reveal and staggered card motion to make the story feel more premium.
+- Meal, dashboard, and AI insight cards use fast hover lift effects without changing layout.
+- Animations stay short and restrained so the demo feels responsive on mobile and desktop.
+
 ## Future Improvements
 
 - Student accounts and vendor accounts.
