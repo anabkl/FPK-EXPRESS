@@ -27,6 +27,7 @@ Students at FPK Khouribga lose valuable break time waiting in food and coffee qu
 - Seeded Moroccan/FPK sample meals priced from 5 MAD to 35 MAD.
 - Mock student/vendor modes for a smooth V1 demo without authentication complexity.
 - Premium light/dark theme toggle with localStorage persistence.
+- Basic local login flow for Student and Vendor demo roles.
 
 ## Architecture
 
@@ -162,6 +163,13 @@ FPK-EXPRESS includes graceful UI states for real demo conditions:
 - Student preorder validation covers name, department, pickup time, and meal quantity before submission.
 - Vendor meal validation checks required fields, MAD price range, preparation time, popularity score, and image URL.
 - Inline validation messages keep the forms mobile-friendly and easy to correct during a live demo.
+
+## Basic Login & Roles
+
+- The V1 uses a simple local login page for Student and Vendor roles without JWT or backend authentication.
+- The selected role is saved in `localStorage` as `fpk-express-role`.
+- Student login opens the student preorder dashboard, while Vendor login opens the vendor operations dashboard.
+- Logout clears the local role and returns the user to the public landing page without breaking demo fallback data.
 
 ## Mobile-first UX & Loading States
 

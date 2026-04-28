@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChefHat, LayoutDashboard, Menu, Moon, ShoppingBag, Store, Sun, Wifi, WifiOff, X } from "lucide-react";
+import { ChefHat, LayoutDashboard, LogIn, LogOut, Menu, Moon, ShoppingBag, Store, Sun, UserRound, Wifi, WifiOff, X } from "lucide-react";
 
 const navItems = [
   { key: "landing", label: "Accueil", icon: ChefHat },
@@ -54,11 +54,48 @@ function ThemeToggle({ theme, onToggleTheme, mobile = false }) {
   );
 }
 
-export default function Navbar({ activeView, onNavigate, isApiOnline, theme, onToggleTheme }) {
+function SessionActions({ userRole, activeView, onLoginClick, onLogout, mobile = false }) {
+  if (!userRole) {
+    return (
+      <button
+        onClick={onLoginClick}
+        className={`inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-primary hover:text-primary ${
+          activeView === "login" ? "border-primary bg-softOrange text-primary" : ""
+        } ${mobile ? "w-full justify-start" : ""}`}
+      >
+        <LogIn size={16} />
+        Connexion
+      </button>
+    );
+  }
+
+  return (
+    <div className={`flex items-center gap-2 ${mobile ? "w-full" : ""}`}>
+      <span
+        className={`inline-flex items-center gap-2 rounded-lg bg-softOrange px-3 py-2 text-xs font-black uppercase tracking-[0.08em] text-primary ${
+          mobile ? "flex-1 justify-center" : ""
+        }`}
+      >
+        <UserRound size={14} />
+        {userRole === "vendor" ? "Vendor" : "Student"}
+      </span>
+      <button onClick={onLogout} className="icon-button" aria-label="Se déconnecter" title="Déconnexion">
+        <LogOut size={18} />
+      </button>
+    </div>
+  );
+}
+
+export default function Navbar({ activeView, onNavigate, isApiOnline, theme, onToggleTheme, userRole, onLogout }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   function handleNavigate(key) {
     onNavigate(key);
+    setIsMenuOpen(false);
+  }
+
+  function handleLogoutClick() {
+    onLogout();
     setIsMenuOpen(false);
   }
 
@@ -92,6 +129,12 @@ export default function Navbar({ activeView, onNavigate, isApiOnline, theme, onT
             );
           })}
           <ApiStatus isApiOnline={isApiOnline} />
+          <SessionActions
+            userRole={userRole}
+            activeView={activeView}
+            onLoginClick={() => handleNavigate("login")}
+            onLogout={handleLogoutClick}
+          />
           <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} />
           <button onClick={() => handleNavigate("vendor")} className="icon-button" aria-label="Ouvrir le dashboard vendeur">
             <LayoutDashboard size={18} />
@@ -140,6 +183,13 @@ export default function Navbar({ activeView, onNavigate, isApiOnline, theme, onT
                   <LayoutDashboard size={18} />
                 </button>
               </div>
+              <SessionActions
+                userRole={userRole}
+                activeView={activeView}
+                onLoginClick={() => handleNavigate("login")}
+                onLogout={handleLogoutClick}
+                mobile
+              />
               <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} mobile />
             </div>
           </motion.nav>

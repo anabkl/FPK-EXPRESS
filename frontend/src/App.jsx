@@ -11,6 +11,7 @@ import MealPreviewSection from "./components/MealPreviewSection.jsx";
 import OrderModal from "./components/OrderModal.jsx";
 import StudentDashboard from "./components/StudentDashboard.jsx";
 import VendorDashboard from "./components/VendorDashboard.jsx";
+import LoginPage from "./components/LoginPage.jsx";
 import Footer from "./components/Footer.jsx";
 import ErrorState from "./components/ErrorState.jsx";
 import LoadingState from "./components/LoadingState.jsx";
@@ -37,6 +38,17 @@ const fallbackRecommendations = {
   })),
 };
 
+const ROLE_STORAGE_KEY = "fpk-express-role";
+const roleViews = {
+  student: "student",
+  vendor: "vendor",
+};
+
+function getSavedRole() {
+  const savedRole = window.localStorage.getItem(ROLE_STORAGE_KEY);
+  return roleViews[savedRole] ? savedRole : null;
+}
+
 export default function App() {
   const { toasts, showToast, removeToast } = useToasts();
   const [theme, setTheme] = useState(() => {
@@ -44,7 +56,9 @@ export default function App() {
     if (savedTheme === "dark" || savedTheme === "light") return savedTheme;
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   });
-  const [activeView, setActiveView] = useState("landing");
+  const [userRole, setUserRole] = useState(getSavedRole);
+  const [loginRole, setLoginRole] = useState(() => getSavedRole() || "student");
+  const [activeView, setActiveView] = useState(() => roleViews[getSavedRole()] || "landing");
   const [meals, setMeals] = useState(sampleMeals);
   const [orders, setOrders] = useState(sampleOrders);
   const [stats, setStats] = useState(sampleStats);
@@ -181,15 +195,64 @@ export default function App() {
     }
   }
 
+  function handleNavigate(view) {
+    if (roleViews[view] && userRole !== view) {
+      setLoginRole(view);
+      setActiveView("login");
+      return;
+    }
+    setActiveView(view);
+  }
+
+  function handleLogin(role) {
+    window.localStorage.setItem(ROLE_STORAGE_KEY, role);
+    setUserRole(role);
+    setLoginRole(role);
+    setActiveView(roleViews[role]);
+    showToast({
+      type: "success",
+      title: role === "vendor" ? "Bienvenue vendeur" : "Bienvenue étudiant",
+      message: "Session locale activée pour la démo FPK-EXPRESS.",
+    });
+  }
+
+  function handleLogout() {
+    window.localStorage.removeItem(ROLE_STORAGE_KEY);
+    setUserRole(null);
+    setSelectedMeal(null);
+    setActiveView("landing");
+    showToast({
+      type: "info",
+      title: "Déconnexion",
+      message: "La session locale a été fermée.",
+    });
+  }
+
+  function handleSelectMeal(meal) {
+    if (userRole !== "student") {
+      setLoginRole("student");
+      setActiveView("login");
+      showToast({
+        type: "info",
+        title: "Connexion étudiant",
+        message: "Connectez-vous en mode étudiant pour finaliser une précommande.",
+      });
+      return;
+    }
+    setSelectedMeal(meal);
+  }
+
   return (
     <div className="min-h-screen bg-canvas text-navy transition-colors duration-300">
       <ToastViewport toasts={toasts} onDismiss={removeToast} />
       <Navbar
         activeView={activeView}
-        onNavigate={setActiveView}
+        onNavigate={handleNavigate}
         isApiOnline={isApiOnline}
         theme={theme}
+        userRole={userRole}
         onToggleTheme={() => setTheme((value) => (value === "dark" ? "light" : "dark"))}
+        onLogout={handleLogout}
       />
 
       {(isLoading || apiError) && (
@@ -210,29 +273,33 @@ export default function App() {
 
       {activeView === "landing" && (
         <main>
-          <HeroSection onNavigate={setActiveView} meals={meals} />
+          <HeroSection onNavigate={handleNavigate} meals={meals} />
           <StatsSection />
           <ProblemSection />
           <SolutionSection />
           <HowItWorks />
           <AIInsights recommendations={recommendations} peakHours={peakHours} stats={stats} isLoading={isLoading} />
-          <MealPreviewSection meals={meals.slice(0, 4)} onSelectMeal={setSelectedMeal} />
+          <MealPreviewSection meals={meals.slice(0, 4)} onSelectMeal={handleSelectMeal} />
         </main>
       )}
 
-      {activeView === "student" && (
+      {activeView === "login" && (
+        <LoginPage preferredRole={loginRole} onLogin={handleLogin} onNavigate={handleNavigate} />
+      )}
+
+      {activeView === "student" && userRole === "student" && (
         <main className="section-shell py-8 sm:py-10">
           <StudentDashboard
             currentOrder={currentOrder}
             recommendations={recommendations.recommendations || []}
-            onSelectMeal={setSelectedMeal}
+            onSelectMeal={handleSelectMeal}
             isLoading={isLoading}
           />
-          <MealGrid meals={meals} orders={orders} onSelectMeal={setSelectedMeal} isLoading={isLoading} />
+          <MealGrid meals={meals} orders={orders} onSelectMeal={handleSelectMeal} isLoading={isLoading} />
         </main>
       )}
 
-      {activeView === "vendor" && (
+      {activeView === "vendor" && userRole === "vendor" && (
         <main className="section-shell py-8 sm:py-10">
           <VendorDashboard
             meals={meals}
@@ -246,7 +313,7 @@ export default function App() {
         </main>
       )}
 
-      <Footer onNavigate={setActiveView} />
+      <Footer onNavigate={handleNavigate} />
 
       {selectedMeal && (
         <OrderModal
