@@ -222,6 +222,12 @@ FPK-EXPRESS now includes a premium Tailwind-powered dark mode:
 - Smooth color transitions across cards, forms, dashboards, charts, modals, toasts, and landing sections.
 - System preference is used on first visit when no saved theme exists.
 
+## API Performance
+
+- Read-heavy endpoints use a lightweight 30-second in-memory TTL cache for meals, dashboard stats, AI recommendations, and peak-hour predictions.
+- Meal and order mutations clear the read cache so the student and vendor dashboards stay fresh after changes.
+- The FastAPI middleware logs every request duration and returns `X-Response-Time-ms` for quick local performance checks.
+
 ## Performance
 FPK-EXPRESS is designed with a lightweight frontend, optimized API structure, and Docker-ready deployment workflow.
 
