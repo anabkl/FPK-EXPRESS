@@ -169,7 +169,7 @@ FPK-EXPRESS includes graceful UI states for real demo conditions:
 - The V1 uses a simple local login page for Student and Vendor roles without JWT or backend authentication.
 - The selected role is saved in `localStorage` as `fpk-express-role`.
 - Student login opens the student preorder dashboard, while Vendor login opens the vendor operations dashboard.
-- Logout clears the local role and returns the user to the public landing page without breaking demo fallback data.
+- Logout clears localStorage and returns the user to the public landing page without breaking demo fallback data.
 
 ## Mobile-first UX & Loading States
 

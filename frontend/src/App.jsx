@@ -217,7 +217,7 @@ export default function App() {
   }
 
   function handleLogout() {
-    window.localStorage.removeItem(ROLE_STORAGE_KEY);
+    window.localStorage.clear();
     setUserRole(null);
     setSelectedMeal(null);
     setActiveView("landing");
