@@ -12,11 +12,13 @@ import OrderModal from "./components/OrderModal.jsx";
 import StudentDashboard from "./components/StudentDashboard.jsx";
 import VendorDashboard from "./components/VendorDashboard.jsx";
 import LoginPage from "./components/LoginPage.jsx";
+import UnauthorizedState from "./components/UnauthorizedState.jsx";
 import Footer from "./components/Footer.jsx";
 import ErrorState from "./components/ErrorState.jsx";
 import LoadingState from "./components/LoadingState.jsx";
 import { ToastViewport, useToasts } from "./components/Toast.jsx";
 import { api } from "./api/client.js";
+import { clearSession, getCurrentRole, isStudent, isVendor, normalizeRole, setCurrentRole } from "./utils/session.js";
 import {
   sampleMeals,
   sampleOrders,
@@ -38,15 +40,15 @@ const fallbackRecommendations = {
   })),
 };
 
-const ROLE_STORAGE_KEY = "fpk-express-role";
 const roleViews = {
   student: "student",
   vendor: "vendor",
 };
 
-function getSavedRole() {
-  const savedRole = window.localStorage.getItem(ROLE_STORAGE_KEY);
-  return roleViews[savedRole] ? savedRole : null;
+function getRoleView(role) {
+  if (isStudent(role)) return "student";
+  if (isVendor(role)) return "vendor";
+  return "landing";
 }
 
 export default function App() {
@@ -56,9 +58,10 @@ export default function App() {
     if (savedTheme === "dark" || savedTheme === "light") return savedTheme;
     return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   });
-  const [userRole, setUserRole] = useState(getSavedRole);
-  const [loginRole, setLoginRole] = useState(() => getSavedRole() || "student");
-  const [activeView, setActiveView] = useState(() => roleViews[getSavedRole()] || "landing");
+  const [userRole, setUserRole] = useState(getCurrentRole);
+  const [loginRole, setLoginRole] = useState(() => getCurrentRole() || "student");
+  const [activeView, setActiveView] = useState(() => getRoleView(getCurrentRole()));
+  const [unauthorizedRole, setUnauthorizedRole] = useState(null);
   const [meals, setMeals] = useState(sampleMeals);
   const [orders, setOrders] = useState(sampleOrders);
   const [stats, setStats] = useState(sampleStats);
@@ -196,29 +199,50 @@ export default function App() {
   }
 
   function handleNavigate(view) {
-    if (roleViews[view] && userRole !== view) {
+    const requiredRole = roleViews[view];
+    if (requiredRole && !userRole) {
       setLoginRole(view);
       setActiveView("login");
       return;
     }
+
+    if (requiredRole && userRole !== requiredRole) {
+      setUnauthorizedRole(requiredRole);
+      setActiveView("unauthorized");
+      return;
+    }
+
+    setUnauthorizedRole(null);
     setActiveView(view);
   }
 
   function handleLogin(role) {
-    window.localStorage.setItem(ROLE_STORAGE_KEY, role);
-    setUserRole(role);
-    setLoginRole(role);
-    setActiveView(roleViews[role]);
+    const normalizedRole = setCurrentRole(role);
+    if (!normalizedRole) {
+      showToast({
+        type: "error",
+        title: "Rôle invalide",
+        message: "Choisissez Student ou Vendor pour continuer.",
+      });
+      return;
+    }
+
+    setUserRole(normalizedRole);
+    setLoginRole(normalizedRole);
+    setUnauthorizedRole(null);
+    setActiveView(getRoleView(normalizedRole));
     showToast({
       type: "success",
-      title: role === "vendor" ? "Bienvenue vendeur" : "Bienvenue étudiant",
+      title: isVendor(normalizedRole) ? "Bienvenue vendeur" : "Bienvenue étudiant",
       message: "Session locale activée pour la démo FPK-EXPRESS.",
     });
   }
 
   function handleLogout() {
-    window.localStorage.clear();
+    clearSession();
     setUserRole(null);
+    setLoginRole("student");
+    setUnauthorizedRole(null);
     setSelectedMeal(null);
     setActiveView("landing");
     showToast({
@@ -229,7 +253,7 @@ export default function App() {
   }
 
   function handleSelectMeal(meal) {
-    if (userRole !== "student") {
+    if (!userRole) {
       setLoginRole("student");
       setActiveView("login");
       showToast({
@@ -239,7 +263,22 @@ export default function App() {
       });
       return;
     }
+
+    if (!isStudent(userRole)) {
+      setUnauthorizedRole("student");
+      setActiveView("unauthorized");
+      return;
+    }
+
     setSelectedMeal(meal);
+  }
+
+  function handleSwitchRole() {
+    clearSession();
+    setUserRole(null);
+    setSelectedMeal(null);
+    setLoginRole(normalizeRole(unauthorizedRole) || "student");
+    setActiveView("login");
   }
 
   return (
@@ -287,7 +326,17 @@ export default function App() {
         <LoginPage preferredRole={loginRole} onLogin={handleLogin} onNavigate={handleNavigate} />
       )}
 
-      {activeView === "student" && userRole === "student" && (
+      {activeView === "unauthorized" && (
+        <UnauthorizedState
+          currentRole={userRole}
+          requestedRole={unauthorizedRole}
+          onGoHome={() => handleNavigate("landing")}
+          onGoDashboard={() => handleNavigate(getRoleView(userRole))}
+          onSwitchRole={handleSwitchRole}
+        />
+      )}
+
+      {activeView === "student" && isStudent(userRole) && (
         <main className="section-shell py-8 sm:py-10">
           <StudentDashboard
             currentOrder={currentOrder}
@@ -299,7 +348,7 @@ export default function App() {
         </main>
       )}
 
-      {activeView === "vendor" && userRole === "vendor" && (
+      {activeView === "vendor" && isVendor(userRole) && (
         <main className="section-shell py-8 sm:py-10">
           <VendorDashboard
             meals={meals}

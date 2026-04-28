@@ -1,15 +1,24 @@
 export const DEPARTMENTS = ["GI", "MIP", "SMA", "BCG", "PC", "SVI"];
 
+export function sanitizeText(value, { maxLength = 240 } = {}) {
+  return String(value ?? "")
+    .replace(/[\u0000-\u001F\u007F]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLength);
+}
+
 function parseTimeToMinutes(value) {
-  if (!/^\d{2}:\d{2}$/.test(value || "")) return null;
-  const [hours, minutes] = value.split(":").map(Number);
+  const timeValue = sanitizeText(value, { maxLength: 20 });
+  if (!/^\d{2}:\d{2}$/.test(timeValue)) return null;
+  const [hours, minutes] = timeValue.split(":").map(Number);
   if (hours > 23 || minutes > 59) return null;
   return hours * 60 + minutes;
 }
 
 function isValidUrl(value) {
   try {
-    const url = new URL(value);
+    const url = new URL(sanitizeText(value, { maxLength: 500 }));
     return ["http:", "https:"].includes(url.protocol);
   } catch {
     return false;
@@ -20,11 +29,14 @@ export function hasValidationErrors(errors) {
   return Object.keys(errors).length > 0;
 }
 
-export function validateStudentOrder({ studentName, department, pickupTime, quantity }) {
+export function validateStudentOrder(input = {}) {
+  const { studentName, department, pickupTime, quantity } = input || {};
   const errors = {};
-  const name = studentName.trim();
+  const name = sanitizeText(studentName, { maxLength: 80 });
+  const departmentValue = sanitizeText(department, { maxLength: 20 });
+  const pickupValue = sanitizeText(pickupTime, { maxLength: 20 });
   const quantityNumber = Number(quantity);
-  const pickupMinutes = parseTimeToMinutes(pickupTime);
+  const pickupMinutes = parseTimeToMinutes(pickupValue);
 
   if (!name) {
     errors.studentName = "Entrez votre nom pour identifier la commande.";
@@ -36,7 +48,7 @@ export function validateStudentOrder({ studentName, department, pickupTime, quan
     errors.studentName = "Le nom doit contenir des lettres.";
   }
 
-  if (!DEPARTMENTS.includes(department)) {
+  if (!DEPARTMENTS.includes(departmentValue)) {
     errors.department = "Choisissez un département valide.";
   }
 
@@ -58,24 +70,26 @@ export function validateStudentOrder({ studentName, department, pickupTime, quan
   return errors;
 }
 
-export function normalizeOrderPayload({ studentName, department, mealId, quantity, pickupTime }) {
+export function normalizeOrderPayload(input = {}) {
+  const { studentName, department, mealId, quantity, pickupTime } = input || {};
   return {
-    student_name: studentName.trim(),
-    student_department: department,
-    meal_id: mealId,
+    student_name: sanitizeText(studentName, { maxLength: 80 }),
+    student_department: sanitizeText(department, { maxLength: 20 }),
+    meal_id: Number(mealId),
     quantity: Number(quantity),
-    pickup_time: pickupTime,
+    pickup_time: sanitizeText(pickupTime, { maxLength: 20 }),
   };
 }
 
-export function validateMealForm(form, categoryValues) {
+export function validateMealForm(form = {}, categoryValues = []) {
   const errors = {};
-  const name = form.name.trim();
-  const description = form.description.trim();
-  const imageUrl = form.image_url.trim();
-  const price = Number(form.price);
-  const preparationTime = Number(form.preparation_time);
-  const popularityScore = Number(form.popularity_score);
+  const name = sanitizeText(form?.name, { maxLength: 80 });
+  const category = sanitizeText(form?.category, { maxLength: 60 });
+  const description = sanitizeText(form?.description, { maxLength: 240 });
+  const imageUrl = sanitizeText(form?.image_url, { maxLength: 500 });
+  const price = Number(form?.price);
+  const preparationTime = Number(form?.preparation_time);
+  const popularityScore = Number(form?.popularity_score);
 
   if (!name) {
     errors.name = "Ajoutez le nom du plat.";
@@ -85,7 +99,7 @@ export function validateMealForm(form, categoryValues) {
     errors.name = "Le nom doit rester sous 80 caractères.";
   }
 
-  if (!categoryValues.includes(form.category)) {
+  if (!categoryValues.includes(category)) {
     errors.category = "Choisissez une catégorie valide.";
   }
 
@@ -120,12 +134,13 @@ export function validateMealForm(form, categoryValues) {
 
 export function normalizeMealPayload(form) {
   return {
-    ...form,
-    name: form.name.trim(),
-    description: form.description.trim(),
-    image_url: form.image_url.trim(),
-    price: Number(form.price),
-    preparation_time: Number(form.preparation_time),
-    popularity_score: Number(form.popularity_score),
+    name: sanitizeText(form?.name, { maxLength: 80 }),
+    category: sanitizeText(form?.category, { maxLength: 60 }),
+    price: Number(form?.price),
+    description: sanitizeText(form?.description, { maxLength: 240 }),
+    image_url: sanitizeText(form?.image_url, { maxLength: 500 }),
+    preparation_time: Number(form?.preparation_time),
+    is_available: Boolean(form?.is_available),
+    popularity_score: Number(form?.popularity_score),
   };
 }

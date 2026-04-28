@@ -4,7 +4,11 @@ services:
       context: ./backend
     container_name: fpk-express-api
     environment:
+      APP_ENV: development
       DATABASE_URL: sqlite:////data/fpk_smart_food.db
+      ALLOWED_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
+      RATE_LIMIT_REQUESTS: 120
+      RATE_LIMIT_WINDOW_SECONDS: 60
     ports:
       - "8000:8000"
     volumes:
