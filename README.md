@@ -236,6 +236,18 @@ FPK-EXPRESS now includes a premium Tailwind-powered dark mode:
 - Meal and order mutations clear the read cache so the student and vendor dashboards stay fresh after changes.
 - The FastAPI middleware logs every request duration and returns `X-Response-Time-ms` for quick local performance checks.
 
+## Security Hardening
+
+- Role-based UI protection keeps Student and Vendor dashboards separated while leaving the public landing/demo sections accessible.
+- Frontend session helpers validate the localStorage role and prevent invalid roles from being stored.
+- Student and vendor form inputs are trimmed, bounded, sanitized, and validated before API submission.
+- Backend Pydantic schemas enforce allowed departments, meal categories, status values, price bounds, quantity bounds, preparation-time bounds, and popularity-score bounds.
+- API responses include baseline security headers: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and restrictive `Permissions-Policy`.
+- CORS origins are configurable with `ALLOWED_ORIGINS`; wildcard origins are rejected when `APP_ENV=production`.
+- A lightweight in-memory IP rate limiter protects the MVP from noisy local abuse while keeping the demo simple.
+- MVP auth is intentionally local-only and not a production security boundary. Production should add real authentication, secure sessions, HTTPS, audit logging, secret management, and database migrations.
+- See [docs/SECURITY.md](docs/SECURITY.md) for the full security model and roadmap.
+
 ## Performance
 FPK-EXPRESS is designed with a lightweight frontend, optimized API structure, and Docker-ready deployment workflow.
 

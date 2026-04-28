@@ -6,7 +6,9 @@ from time import perf_counter
 from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -23,11 +25,13 @@ from .schemas import (
     OrderStatusUpdate,
     RecommendationItem,
 )
+from .security import SECURITY_HEADERS, build_rate_limiter, get_allowed_origins
 from .seed import seed_database
 
 
 SERVICE_FEE = 1.0
 logger = logging.getLogger("uvicorn.access")
+rate_limiter = build_rate_limiter()
 
 app = FastAPI(
     title="FPK-EXPRESS API",
@@ -37,12 +41,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
+    allow_origins=get_allowed_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -52,9 +51,21 @@ app.add_middleware(
 @app.middleware("http")
 async def log_response_time(request: Request, call_next):
     started_at = perf_counter()
-    response = await call_next(request)
+    client_ip = request.client.host if request.client else "unknown"
+
+    if not rate_limiter.allow(client_ip):
+        response = JSONResponse(
+            status_code=429,
+            content={"detail": "Too many requests. Please retry later."},
+        )
+    else:
+        response = await call_next(request)
+
     duration_ms = (perf_counter() - started_at) * 1000
     response.headers["X-Response-Time-ms"] = f"{duration_ms:.2f}"
+    for header, value in SECURITY_HEADERS.items():
+        response.headers[header] = value
+
     logger.info(
         "%s %s completed with %s in %.2fms",
         request.method,
@@ -63,6 +74,19 @@ async def log_response_time(request: Request, call_next):
         duration_ms,
     )
     return response
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    errors = []
+    for error in exc.errors():
+        location = ".".join(str(part) for part in error.get("loc", [])[1:])
+        errors.append({"field": location or "request", "message": error.get("msg", "Invalid value")})
+
+    return JSONResponse(
+        status_code=422,
+        content={"detail": "Invalid request payload.", "errors": errors},
+    )
 
 
 @app.on_event("startup")
