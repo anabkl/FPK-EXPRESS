@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChefHat, LayoutDashboard, Menu, ShoppingBag, Store, Wifi, WifiOff, X } from "lucide-react";
+import { ChefHat, LayoutDashboard, Menu, Moon, ShoppingBag, Store, Sun, Wifi, WifiOff, X } from "lucide-react";
 
 const navItems = [
   { key: "landing", label: "Accueil", icon: ChefHat },
@@ -37,7 +37,24 @@ function NavButton({ item, isActive, onClick, mobile = false }) {
   );
 }
 
-export default function Navbar({ activeView, onNavigate, isApiOnline }) {
+function ThemeToggle({ theme, onToggleTheme, mobile = false }) {
+  const isDark = theme === "dark";
+  const Icon = isDark ? Sun : Moon;
+
+  return (
+    <button
+      onClick={onToggleTheme}
+      className={`icon-button ${mobile ? "!w-full justify-start gap-2 px-3 text-sm font-semibold" : ""}`}
+      aria-label={isDark ? "Activer le mode clair" : "Activer le mode sombre"}
+      title={isDark ? "Mode clair" : "Mode sombre"}
+    >
+      <Icon size={18} />
+      {mobile && <span>{isDark ? "Mode clair" : "Mode sombre"}</span>}
+    </button>
+  );
+}
+
+export default function Navbar({ activeView, onNavigate, isApiOnline, theme, onToggleTheme }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   function handleNavigate(key) {
@@ -75,6 +92,7 @@ export default function Navbar({ activeView, onNavigate, isApiOnline }) {
             );
           })}
           <ApiStatus isApiOnline={isApiOnline} />
+          <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} />
           <button onClick={() => handleNavigate("vendor")} className="icon-button" aria-label="Ouvrir le dashboard vendeur">
             <LayoutDashboard size={18} />
           </button>
@@ -122,6 +140,7 @@ export default function Navbar({ activeView, onNavigate, isApiOnline }) {
                   <LayoutDashboard size={18} />
                 </button>
               </div>
+              <ThemeToggle theme={theme} onToggleTheme={onToggleTheme} mobile />
             </div>
           </motion.nav>
         )}

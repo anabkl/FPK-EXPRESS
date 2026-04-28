@@ -26,6 +26,7 @@ Students at FPK Khouribga lose valuable break time waiting in food and coffee qu
 - AI-like services for popular meal recommendations, estimated waiting time, and peak-hour prediction.
 - Seeded Moroccan/FPK sample meals priced from 5 MAD to 35 MAD.
 - Mock student/vendor modes for a smooth V1 demo without authentication complexity.
+- Premium light/dark theme toggle with localStorage persistence.
 
 ## Architecture
 
@@ -213,7 +214,13 @@ docker compose config
 ```
 
 ## Dark Mode
-Coming soon: dark mode support for better UX.
+
+FPK-EXPRESS now includes a premium Tailwind-powered dark mode:
+
+- Navbar theme toggle with sun/moon icon states.
+- Theme preference saved in `localStorage` using `fpk-express-theme`.
+- Smooth color transitions across cards, forms, dashboards, charts, modals, toasts, and landing sections.
+- System preference is used on first visit when no saved theme exists.
 
 ## Performance
 FPK-EXPRESS is designed with a lightweight frontend, optimized API structure, and Docker-ready deployment workflow.

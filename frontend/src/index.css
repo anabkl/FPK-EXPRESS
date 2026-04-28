@@ -5,10 +5,17 @@
 :root {
   color: #0f172a;
   background: #f8fafc;
+  color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+html.dark {
+  color: #f8fafc;
+  background: #020617;
+  color-scheme: dark;
 }
 
 html {
@@ -21,6 +28,14 @@ body {
   background:
     radial-gradient(circle at top left, rgba(255, 122, 0, 0.08), transparent 34rem),
     linear-gradient(180deg, #fff7ed 0%, #f8fafc 34rem);
+  transition: background 300ms ease, color 300ms ease;
+}
+
+html.dark body {
+  background:
+    radial-gradient(circle at top left, rgba(255, 122, 0, 0.14), transparent 32rem),
+    radial-gradient(circle at top right, rgba(22, 163, 74, 0.10), transparent 28rem),
+    linear-gradient(180deg, #020617 0%, #0f172a 38rem);
 }
 
 button,
@@ -28,6 +43,16 @@ input,
 select,
 textarea {
   font: inherit;
+}
+
+input,
+select,
+textarea {
+  color: inherit;
+}
+
+::selection {
+  background: rgba(255, 122, 0, 0.24);
 }
 
 img {
@@ -39,11 +64,11 @@ img {
 }
 
 .card {
-  @apply rounded-lg border border-slate-200 bg-white shadow-soft;
+  @apply rounded-lg border border-slate-200 bg-white shadow-soft transition-colors duration-300 dark:border-slate-700/80 dark:bg-slate-900/85 dark:shadow-[0_18px_60px_rgba(0,0,0,0.35)];
 }
 
 .icon-button {
-  @apply inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-primary hover:text-primary;
+  @apply inline-flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-700 transition hover:border-primary hover:text-primary dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-primary dark:hover:bg-slate-800 dark:hover:text-orange-300;
 }
 
 .primary-button {
@@ -51,5 +76,131 @@ img {
 }
 
 .secondary-button {
-  @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-3 font-semibold text-navy transition hover:-translate-y-0.5 hover:border-primary hover:text-primary;
+  @apply inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-3 font-semibold text-navy transition hover:-translate-y-0.5 hover:border-primary hover:text-primary dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:border-primary dark:hover:text-orange-300;
+}
+
+@layer utilities {
+  .dark .bg-canvas {
+    background-color: #020617 !important;
+  }
+
+  .dark .bg-white,
+  .dark .bg-white\/90 {
+    background-color: rgb(15 23 42 / 0.94) !important;
+  }
+
+  .dark .bg-white\/15 {
+    background-color: rgb(255 255 255 / 0.12) !important;
+  }
+
+  .dark .bg-slate-50 {
+    background-color: rgb(15 23 42 / 0.78) !important;
+  }
+
+  .dark .bg-slate-100 {
+    background-color: rgb(30 41 59 / 0.88) !important;
+  }
+
+  .dark .bg-slate-200 {
+    background-color: rgb(51 65 85 / 0.9) !important;
+  }
+
+  .dark .bg-softOrange,
+  .dark .bg-orange-50 {
+    background-color: rgb(67 32 9 / 0.74) !important;
+  }
+
+  .dark .bg-emerald-50 {
+    background-color: rgb(6 78 59 / 0.56) !important;
+  }
+
+  .dark .bg-red-50 {
+    background-color: rgb(127 29 29 / 0.45) !important;
+  }
+
+  .dark .border-slate-200,
+  .dark .border-slate-200\/80 {
+    border-color: rgb(51 65 85 / 0.82) !important;
+  }
+
+  .dark .border-slate-300 {
+    border-color: rgb(71 85 105 / 0.86) !important;
+  }
+
+  .dark .border-orange-100\/80,
+  .dark .border-orange-200 {
+    border-color: rgb(251 146 60 / 0.42) !important;
+  }
+
+  .dark .border-white,
+  .dark .border-white\/80,
+  .dark .border-white\/10 {
+    border-color: rgb(255 255 255 / 0.12) !important;
+  }
+
+  .dark .text-navy {
+    color: rgb(248 250 252) !important;
+  }
+
+  .dark .text-slate-700,
+  .dark .text-slate-600 {
+    color: rgb(203 213 225) !important;
+  }
+
+  .dark .text-slate-500,
+  .dark .text-slate-400 {
+    color: rgb(148 163 184) !important;
+  }
+
+  .dark .text-slate-300 {
+    color: rgb(226 232 240) !important;
+  }
+
+  .dark .text-primary {
+    color: rgb(251 146 60) !important;
+  }
+
+  .dark .text-fresh {
+    color: rgb(74 222 128) !important;
+  }
+
+  .dark .shadow-soft {
+    box-shadow: 0 20px 60px rgb(0 0 0 / 0.36) !important;
+  }
+
+  .dark .shadow-glow {
+    box-shadow: 0 18px 55px rgb(255 122 0 / 0.20) !important;
+  }
+
+  .dark .hover\:bg-slate-100:hover {
+    background-color: rgb(30 41 59 / 0.88) !important;
+  }
+
+  .dark .hover\:text-navy:hover {
+    color: rgb(248 250 252) !important;
+  }
+
+  .dark .hover\:border-orange-200:hover {
+    border-color: rgb(251 146 60 / 0.58) !important;
+  }
+
+  .dark .recharts-cartesian-grid line {
+    stroke: rgb(51 65 85) !important;
+  }
+
+  .dark .recharts-cartesian-axis-tick-value {
+    fill: rgb(148 163 184) !important;
+  }
+
+  .dark .recharts-default-tooltip {
+    background-color: rgb(15 23 42 / 0.96) !important;
+    border-color: rgb(51 65 85) !important;
+    color: rgb(248 250 252) !important;
+    box-shadow: 0 18px 45px rgb(0 0 0 / 0.36);
+  }
+
+  .dark .recharts-tooltip-label,
+  .dark .recharts-tooltip-item {
+    color: rgb(248 250 252) !important;
+  }
 }
