@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import logging
 from datetime import datetime, time
+from time import perf_counter
 from typing import Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from .ai import build_ai_summary, estimate_waiting_time, predict_peak_hours, recommend_meals
+from .cache import api_cache
 from .database import Base, SessionLocal, engine, get_db
 from .models import Meal, Order
 from .schemas import (
@@ -24,6 +27,7 @@ from .seed import seed_database
 
 
 SERVICE_FEE = 1.0
+logger = logging.getLogger("uvicorn.access")
 
 app = FastAPI(
     title="FPK-EXPRESS API",
@@ -45,11 +49,35 @@ app.add_middleware(
 )
 
 
+@app.middleware("http")
+async def log_response_time(request: Request, call_next):
+    started_at = perf_counter()
+    response = await call_next(request)
+    duration_ms = (perf_counter() - started_at) * 1000
+    response.headers["X-Response-Time-ms"] = f"{duration_ms:.2f}"
+    logger.info(
+        "%s %s completed with %s in %.2fms",
+        request.method,
+        request.url.path,
+        response.status_code,
+        duration_ms,
+    )
+    return response
+
+
 @app.on_event("startup")
 def on_startup() -> None:
     Base.metadata.create_all(bind=engine)
     with SessionLocal() as db:
         seed_database(db)
+
+
+def invalidate_read_cache() -> None:
+    api_cache.clear()
+
+
+def serialize_meal(meal: Meal) -> dict:
+    return MealRead.model_validate(meal).model_dump(mode="json")
 
 
 @app.get("/health")
@@ -62,14 +90,20 @@ def get_meals(
     category: Optional[str] = None,
     search: Optional[str] = None,
     db: Session = Depends(get_db),
-) -> list[Meal]:
-    query = db.query(Meal)
-    if category and category != "Tous":
-        query = query.filter(Meal.category == category)
-    if search:
-        like = f"%{search}%"
-        query = query.filter((Meal.name.ilike(like)) | (Meal.description.ilike(like)))
-    return query.order_by(Meal.popularity_score.desc()).all()
+) -> list[dict]:
+    normalized_category = category or "Tous"
+    normalized_search = (search or "").strip().lower()
+
+    def fetch_meals() -> list[dict]:
+        query = db.query(Meal)
+        if normalized_category != "Tous":
+            query = query.filter(Meal.category == normalized_category)
+        if normalized_search:
+            like = f"%{normalized_search}%"
+            query = query.filter((Meal.name.ilike(like)) | (Meal.description.ilike(like)))
+        return [serialize_meal(meal) for meal in query.order_by(Meal.popularity_score.desc()).all()]
+
+    return api_cache.get_or_set(("meals", normalized_category, normalized_search), fetch_meals)
 
 
 @app.post("/meals", response_model=MealRead, status_code=201)
@@ -78,6 +112,7 @@ def create_meal(payload: MealCreate, db: Session = Depends(get_db)) -> Meal:
     db.add(meal)
     db.commit()
     db.refresh(meal)
+    invalidate_read_cache()
     return meal
 
 
@@ -112,6 +147,7 @@ def create_order(payload: OrderCreate, db: Session = Depends(get_db)) -> Order:
     db.add(order)
     db.commit()
     db.refresh(order)
+    invalidate_read_cache()
     return order
 
 
@@ -134,67 +170,71 @@ def update_order_status(order_id: int, payload: OrderStatusUpdate, db: Session =
     order.status = payload.status
     db.commit()
     db.refresh(order)
+    invalidate_read_cache()
     return order
 
 
 @app.get("/dashboard/stats", response_model=DashboardStats)
 def dashboard_stats(db: Session = Depends(get_db)) -> dict:
-    start_of_day = datetime.combine(datetime.utcnow().date(), time.min)
-    today_orders = db.query(Order).filter(Order.created_at >= start_of_day).all()
+    def fetch_stats() -> dict:
+        start_of_day = datetime.combine(datetime.utcnow().date(), time.min)
+        today_orders = db.query(Order).filter(Order.created_at >= start_of_day).all()
 
-    total_orders = len(today_orders)
-    revenue_today = round(sum(order.total_price for order in today_orders), 2)
-    avg_wait = round(
-        sum(order.estimated_waiting_time for order in today_orders) / total_orders,
-        1,
-    ) if total_orders else 0
+        total_orders = len(today_orders)
+        revenue_today = round(sum(order.total_price for order in today_orders), 2)
+        avg_wait = round(
+            sum(order.estimated_waiting_time for order in today_orders) / total_orders,
+            1,
+        ) if total_orders else 0
 
-    popular_row = (
-        db.query(Meal.name, func.count(Order.id).label("orders"))
-        .join(Order, Meal.id == Order.meal_id)
-        .group_by(Meal.id)
-        .order_by(func.count(Order.id).desc())
-        .first()
-    )
-
-    orders_per_hour = [
-        {"hour": f"{hour:02d}:00", "orders": 0}
-        for hour in range(8, 18)
-    ]
-    observed_orders = dict(
-        db.query(func.strftime("%H", Order.created_at), func.count(Order.id))
-        .group_by(func.strftime("%H", Order.created_at))
-        .all()
-    )
-    for point in orders_per_hour:
-        point["orders"] = int(observed_orders.get(point["hour"][:2], 0))
-
-    popular_meals = [
-        {"name": name, "orders": int(count)}
-        for name, count in (
-            db.query(Meal.name, func.count(Order.id))
+        popular_row = (
+            db.query(Meal.name, func.count(Order.id).label("orders"))
             .join(Order, Meal.id == Order.meal_id)
             .group_by(Meal.id)
             .order_by(func.count(Order.id).desc())
-            .limit(6)
+            .first()
+        )
+
+        orders_per_hour = [
+            {"hour": f"{hour:02d}:00", "orders": 0}
+            for hour in range(8, 18)
+        ]
+        observed_orders = dict(
+            db.query(func.strftime("%H", Order.created_at), func.count(Order.id))
+            .group_by(func.strftime("%H", Order.created_at))
             .all()
         )
-    ]
+        for point in orders_per_hour:
+            point["orders"] = int(observed_orders.get(point["hour"][:2], 0))
 
-    waiting_time_by_hour = [
-        {"hour": point["hour"], "minutes": max(5, 6 + point["orders"] * 3)}
-        for point in orders_per_hour
-    ]
+        popular_meals = [
+            {"name": name, "orders": int(count)}
+            for name, count in (
+                db.query(Meal.name, func.count(Order.id))
+                .join(Order, Meal.id == Order.meal_id)
+                .group_by(Meal.id)
+                .order_by(func.count(Order.id).desc())
+                .limit(6)
+                .all()
+            )
+        ]
 
-    return {
-        "total_orders": total_orders,
-        "revenue_today": revenue_today,
-        "average_waiting_time": avg_wait,
-        "popular_meal": popular_row.name if popular_row else "Aucun plat",
-        "orders_per_hour": orders_per_hour,
-        "popular_meals": popular_meals,
-        "waiting_time_by_hour": waiting_time_by_hour,
-    }
+        waiting_time_by_hour = [
+            {"hour": point["hour"], "minutes": max(5, 6 + point["orders"] * 3)}
+            for point in orders_per_hour
+        ]
+
+        return {
+            "total_orders": total_orders,
+            "revenue_today": revenue_today,
+            "average_waiting_time": avg_wait,
+            "popular_meal": popular_row.name if popular_row else "Aucun plat",
+            "orders_per_hour": orders_per_hour,
+            "popular_meals": popular_meals,
+            "waiting_time_by_hour": waiting_time_by_hour,
+        }
+
+    return api_cache.get_or_set(("dashboard_stats",), fetch_stats)
 
 
 @app.get("/ai/recommendations", response_model=dict)
@@ -203,19 +243,27 @@ def ai_recommendations(
     limit: int = Query(default=4, ge=1, le=8),
     db: Session = Depends(get_db),
 ) -> dict:
-    return {
-        "summary": build_ai_summary(db),
-        "recommendations": [
-            RecommendationItem.model_validate(item).model_dump(mode="json")
-            for item in recommend_meals(db, category=category, limit=limit)
-        ],
-    }
+    normalized_category = category or "all"
+
+    def fetch_recommendations() -> dict:
+        return {
+            "summary": build_ai_summary(db),
+            "recommendations": [
+                RecommendationItem.model_validate(item).model_dump(mode="json")
+                for item in recommend_meals(db, category=category, limit=limit)
+            ],
+        }
+
+    return api_cache.get_or_set(("ai_recommendations", normalized_category, limit), fetch_recommendations)
 
 
 @app.get("/ai/peak-hours")
 def ai_peak_hours(db: Session = Depends(get_db)) -> dict:
-    return {
-        "campus": "FPK Khouribga",
-        "predictions": predict_peak_hours(db),
-        "message": "Les pics prevus se situent surtout entre 12:00 et 13:00.",
-    }
+    def fetch_peak_hours() -> dict:
+        return {
+            "campus": "FPK Khouribga",
+            "predictions": predict_peak_hours(db),
+            "message": "Les pics prevus se situent surtout entre 12:00 et 13:00.",
+        }
+
+    return api_cache.get_or_set(("ai_peak_hours",), fetch_peak_hours)
