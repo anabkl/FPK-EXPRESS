@@ -39,6 +39,11 @@ const fallbackRecommendations = {
 
 export default function App() {
   const { toasts, showToast, removeToast } = useToasts();
+  const [theme, setTheme] = useState(() => {
+    const savedTheme = window.localStorage.getItem("fpk-express-theme");
+    if (savedTheme === "dark" || savedTheme === "light") return savedTheme;
+    return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  });
   const [activeView, setActiveView] = useState("landing");
   const [meals, setMeals] = useState(sampleMeals);
   const [orders, setOrders] = useState(sampleOrders);
@@ -82,6 +87,13 @@ export default function App() {
     const timer = window.setInterval(refreshData, 20000);
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    const isDark = theme === "dark";
+    document.documentElement.classList.toggle("dark", isDark);
+    document.documentElement.style.colorScheme = isDark ? "dark" : "light";
+    window.localStorage.setItem("fpk-express-theme", theme);
+  }, [theme]);
 
   const currentOrder = useMemo(() => {
     return orders.find((order) => order.id === currentOrderId) || orders.find((order) => order.status !== "Completed");
@@ -170,9 +182,15 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-canvas text-navy">
+    <div className="min-h-screen bg-canvas text-navy transition-colors duration-300">
       <ToastViewport toasts={toasts} onDismiss={removeToast} />
-      <Navbar activeView={activeView} onNavigate={setActiveView} isApiOnline={isApiOnline} />
+      <Navbar
+        activeView={activeView}
+        onNavigate={setActiveView}
+        isApiOnline={isApiOnline}
+        theme={theme}
+        onToggleTheme={() => setTheme((value) => (value === "dark" ? "light" : "dark"))}
+      />
 
       {(isLoading || apiError) && (
         <div className="section-shell pt-4">
