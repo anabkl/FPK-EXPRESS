@@ -6,6 +6,7 @@ import {
   normalizeOrderPayload,
   validateStudentOrder,
 } from "../utils/validation.js";
+import { orderStatusLabel, paymentStatusLabel } from "../utils/labels.js";
 
 function getDefaultPickupTime() {
   const date = new Date();
@@ -35,8 +36,7 @@ function FieldError({ message }) {
   return <p className="mt-1 text-xs font-bold text-red-600">{message}</p>;
 }
 
-export default function OrderModal({ meal, orders, onClose, onSubmit, onToast }) {
-  const [studentName, setStudentName] = useState("Étudiant FPK");
+export default function OrderModal({ meal, orders, user, onClose, onSubmit, onToast }) {
   const [department, setDepartment] = useState("GI");
   const [pickupTime, setPickupTime] = useState(getDefaultPickupTime());
   const [quantity, setQuantity] = useState(1);
@@ -53,7 +53,7 @@ export default function OrderModal({ meal, orders, onClose, onSubmit, onToast })
 
   async function handleSubmit(event) {
     event.preventDefault();
-    const nextErrors = validateStudentOrder({ studentName, department, pickupTime, quantity });
+    const nextErrors = validateStudentOrder({ department, pickupTime, quantity });
 
     if (hasValidationErrors(nextErrors)) {
       setErrors(nextErrors);
@@ -69,18 +69,17 @@ export default function OrderModal({ meal, orders, onClose, onSubmit, onToast })
     try {
       setIsSubmitting(true);
       const order = await onSubmit(normalizeOrderPayload({
-        studentName,
         department,
         mealId: meal.id,
         quantity,
         pickupTime,
       }));
       setCreatedOrder(order);
-    } catch {
+    } catch (error) {
       onToast?.({
         type: "error",
         title: "Commande non envoyée",
-        message: "Une erreur est survenue pendant la confirmation.",
+        message: error.message || "Une erreur est survenue pendant la confirmation.",
       });
     } finally {
       setIsSubmitting(false);
@@ -115,7 +114,7 @@ export default function OrderModal({ meal, orders, onClose, onSubmit, onToast })
             </div>
             <h3 className="mt-5 text-2xl font-black text-navy">Commande confirmée</h3>
             <p className="mt-2 text-slate-600">
-              Pickup à {createdOrder.pickup_time} · Statut initial: {createdOrder.status}
+              Retrait à {createdOrder.pickup_time} · {orderStatusLabel(createdOrder.status)}
             </p>
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               <div className="rounded-lg bg-slate-50 p-4">
@@ -127,12 +126,15 @@ export default function OrderModal({ meal, orders, onClose, onSubmit, onToast })
                 <p className="mt-1 text-xl font-black text-navy">{createdOrder.estimated_waiting_time} min</p>
               </div>
               <div className="rounded-lg bg-slate-50 p-4">
-                <p className="text-sm font-bold text-slate-500">Commande</p>
-                <p className="mt-1 text-xl font-black text-navy">#{createdOrder.id}</p>
+                <p className="text-sm font-bold text-slate-500">Référence</p>
+                <p className="mt-1 text-xl font-black text-navy">{createdOrder.order_reference}</p>
               </div>
             </div>
+            <p className="mt-4 rounded-lg bg-softOrange p-4 text-sm font-black text-primary">
+              Paiement au retrait · {paymentStatusLabel(createdOrder.payment_status)}
+            </p>
             <button onClick={onClose} className="primary-button mt-6">
-              Voir mon dashboard
+              Voir mes commandes
             </button>
           </div>
         ) : (
@@ -141,6 +143,7 @@ export default function OrderModal({ meal, orders, onClose, onSubmit, onToast })
               <img className="h-52 w-full object-cover" src={meal.image_url} alt={meal.name} />
               <div className="p-4">
                 <p className="text-sm font-bold text-primary">{meal.category}</p>
+                <p className="mt-1 text-xs font-bold text-slate-500">{meal.snack_partner?.name}</p>
                 <p className="mt-2 text-sm leading-6 text-slate-600">{meal.description}</p>
                 <div className="mt-4 flex items-center gap-2 rounded-lg bg-white p-3 text-sm font-bold text-slate-700">
                   <Clock size={18} className="text-primary" />
@@ -150,20 +153,10 @@ export default function OrderModal({ meal, orders, onClose, onSubmit, onToast })
             </div>
 
             <div className="space-y-4">
-              <label className="block">
-                <span className="text-sm font-bold text-slate-700">Nom étudiant</span>
-                <input
-                  value={studentName}
-                  onChange={(event) => {
-                    setStudentName(event.target.value);
-                    updateField("studentName");
-                  }}
-                  className={fieldClass(errors.studentName)}
-                  aria-invalid={Boolean(errors.studentName)}
-                  required
-                />
-                <FieldError message={errors.studentName} />
-              </label>
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+                <p className="text-xs font-bold text-slate-500">Commande pour</p>
+                <p className="mt-1 font-black text-navy">{user?.full_name}</p>
+              </div>
 
               <label className="block">
                 <span className="text-sm font-bold text-slate-700">Département</span>
@@ -184,7 +177,7 @@ export default function OrderModal({ meal, orders, onClose, onSubmit, onToast })
               </label>
 
               <label className="block">
-                <span className="text-sm font-bold text-slate-700">Heure de pickup</span>
+                <span className="text-sm font-bold text-slate-700">Heure de retrait</span>
                 <input
                   type="time"
                   value={pickupTime}
@@ -240,6 +233,7 @@ export default function OrderModal({ meal, orders, onClose, onSubmit, onToast })
                   <span className="text-2xl font-black text-primary">{total} MAD</span>
                 </div>
                 <p className="mt-2 text-sm font-medium text-slate-600">Inclut 1 MAD de frais de service V1.</p>
+                <p className="mt-2 text-sm font-black text-primary">Paiement au retrait · À régler au retrait</p>
               </div>
 
               <button disabled={isSubmitting} className="primary-button w-full">

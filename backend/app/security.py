@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-import os
 from threading import RLock
 from time import monotonic
+
+from .config import get_settings
 
 
 DEFAULT_ALLOWED_ORIGINS = (
@@ -20,28 +21,17 @@ SECURITY_HEADERS = {
 }
 
 
-def get_app_environment() -> str:
-    return os.getenv("APP_ENV", "development").strip().lower() or "development"
-
-
 def get_allowed_origins() -> list[str]:
-    raw_origins = os.getenv("ALLOWED_ORIGINS", ",".join(DEFAULT_ALLOWED_ORIGINS))
+    settings = get_settings()
+    raw_origins = settings.allowed_origins or ",".join(DEFAULT_ALLOWED_ORIGINS)
     origins = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
     if not origins:
         origins = list(DEFAULT_ALLOWED_ORIGINS)
 
-    if get_app_environment() == "production" and "*" in origins:
+    if settings.is_production and "*" in origins:
         raise RuntimeError("ALLOWED_ORIGINS cannot contain '*' when APP_ENV=production")
 
     return origins
-
-
-def get_int_env(name: str, default: int, minimum: int = 1) -> int:
-    try:
-        value = int(os.getenv(name, str(default)))
-    except ValueError:
-        return default
-    return max(value, minimum)
 
 
 class RateLimiter:
@@ -73,7 +63,8 @@ class RateLimiter:
 
 
 def build_rate_limiter() -> RateLimiter:
+    settings = get_settings()
     return RateLimiter(
-        max_requests=get_int_env("RATE_LIMIT_REQUESTS", 120),
-        window_seconds=get_int_env("RATE_LIMIT_WINDOW_SECONDS", 60),
+        max_requests=max(settings.rate_limit_requests, 1),
+        window_seconds=max(settings.rate_limit_window_seconds, 1),
     )

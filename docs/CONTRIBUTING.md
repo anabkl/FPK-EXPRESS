@@ -1,6 +1,6 @@
 # Contributing To FPK-EXPRESS
 
-Thanks for improving FPK-EXPRESS. Keep changes focused, demo-friendly, and aligned with the validated student problem.
+Thanks for improving FPK-EXPRESS. Keep changes focused, deployment-safe, and aligned with the validated student problem.
 
 ## Local Setup
 
@@ -11,6 +11,7 @@ cd backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+alembic -c alembic.ini upgrade head
 uvicorn app.main:app --reload --port 8000
 ```
 
@@ -18,14 +19,15 @@ Frontend:
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
 ## Development Guidelines
 
 - Preserve the student preorder flow and vendor dashboard behavior.
-- Keep V1 simple: no authentication unless it is part of a planned milestone.
+- Preserve server-side role and ownership checks; frontend visibility is never authorization.
+- Keep payment limited to `PayOnPickup`/`PaidOnPickup` and do not add delivery behavior.
 - Use the existing React, TailwindCSS, Framer Motion, FastAPI, and SQLAlchemy patterns.
 - Keep UI copy concise and student-centered.
 - Use MAD pricing and realistic FPK Khouribga meal examples.
@@ -35,7 +37,13 @@ npm run dev
 Run before opening a pull request:
 
 ```bash
+cd backend
+pytest
+```
+
+```bash
 cd frontend
+npm ci
 npm run build
 ```
 
@@ -54,3 +62,4 @@ docker compose config
 - README or docs are updated when behavior changes.
 - UI remains mobile-first and responsive.
 - No secrets are committed.
+- Database model changes include a reviewed Alembic migration.

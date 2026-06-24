@@ -11,7 +11,7 @@ export default function Footer({ onNavigate }) {
           <div>
             <p className="font-black text-navy">FPK-EXPRESS</p>
             <p className="text-sm font-medium text-slate-500">
-              AI-powered preorder & pickup platform for FPK Khouribga students.
+              Précommande et retrait direct autour de la FPK Khouribga. Aucune livraison.
             </p>
           </div>
         </div>
@@ -23,7 +23,7 @@ export default function Footer({ onNavigate }) {
           </button>
           <button onClick={() => onNavigate("vendor")} className="secondary-button px-3 py-2 text-sm">
             <Store size={17} />
-            Démo vendeur
+            Espace vendeur
           </button>
           <a href="mailto:demo@fpk-express.local" className="icon-button" aria-label="Contact">
             <Mail size={18} />

@@ -30,36 +30,25 @@ export function hasValidationErrors(errors) {
 }
 
 export function validateStudentOrder(input = {}) {
-  const { studentName, department, pickupTime, quantity } = input || {};
+  const { department, pickupTime, quantity } = input || {};
   const errors = {};
-  const name = sanitizeText(studentName, { maxLength: 80 });
   const departmentValue = sanitizeText(department, { maxLength: 20 });
   const pickupValue = sanitizeText(pickupTime, { maxLength: 20 });
   const quantityNumber = Number(quantity);
   const pickupMinutes = parseTimeToMinutes(pickupValue);
-
-  if (!name) {
-    errors.studentName = "Entrez votre nom pour identifier la commande.";
-  } else if (name.length < 2) {
-    errors.studentName = "Le nom doit contenir au moins 2 caractères.";
-  } else if (name.length > 80) {
-    errors.studentName = "Le nom doit rester sous 80 caractères.";
-  } else if (!/[A-Za-zÀ-ÖØ-öø-ÿ]/.test(name)) {
-    errors.studentName = "Le nom doit contenir des lettres.";
-  }
 
   if (!DEPARTMENTS.includes(departmentValue)) {
     errors.department = "Choisissez un département valide.";
   }
 
   if (pickupMinutes === null) {
-    errors.pickupTime = "Choisissez une heure de pickup valide.";
+    errors.pickupTime = "Choisissez une heure de retrait valide.";
   } else {
     const now = new Date();
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
-    const isNextDayEarlyPickup = currentMinutes >= 22 * 60 && pickupMinutes <= 2 * 60;
-    if (pickupMinutes < currentMinutes + 5 && !isNextDayEarlyPickup) {
-      errors.pickupTime = "Choisissez un créneau au moins 5 minutes plus tard.";
+    const minutesUntilPickup = (pickupMinutes - currentMinutes + 24 * 60) % (24 * 60);
+    if (minutesUntilPickup < 5 || minutesUntilPickup > 8 * 60) {
+      errors.pickupTime = "Choisissez un retrait entre 5 minutes et 8 heures à venir.";
     }
   }
 
@@ -71,9 +60,8 @@ export function validateStudentOrder(input = {}) {
 }
 
 export function normalizeOrderPayload(input = {}) {
-  const { studentName, department, mealId, quantity, pickupTime } = input || {};
+  const { department, mealId, quantity, pickupTime } = input || {};
   return {
-    student_name: sanitizeText(studentName, { maxLength: 80 }),
     student_department: sanitizeText(department, { maxLength: 20 }),
     meal_id: Number(mealId),
     quantity: Number(quantity),
@@ -90,6 +78,7 @@ export function validateMealForm(form = {}, categoryValues = []) {
   const price = Number(form?.price);
   const preparationTime = Number(form?.preparation_time);
   const popularityScore = Number(form?.popularity_score);
+  const stockQuantity = Number(form?.stock_quantity);
 
   if (!name) {
     errors.name = "Ajoutez le nom du plat.";
@@ -103,8 +92,8 @@ export function validateMealForm(form = {}, categoryValues = []) {
     errors.category = "Choisissez une catégorie valide.";
   }
 
-  if (!Number.isFinite(price) || price < 5 || price > 35) {
-    errors.price = "Le prix doit être entre 5 et 35 MAD.";
+  if (!Number.isFinite(price) || price < 1 || price > 100) {
+    errors.price = "Le prix doit être entre 1 et 100 MAD.";
   }
 
   if (!description) {
@@ -115,18 +104,20 @@ export function validateMealForm(form = {}, categoryValues = []) {
     errors.description = "La description doit rester sous 240 caractères.";
   }
 
-  if (!imageUrl) {
-    errors.image_url = "Ajoutez une URL d'image.";
-  } else if (!isValidUrl(imageUrl)) {
+  if (imageUrl && !isValidUrl(imageUrl)) {
     errors.image_url = "Utilisez une URL d'image valide en http ou https.";
   }
 
-  if (!Number.isInteger(preparationTime) || preparationTime < 1 || preparationTime > 30) {
-    errors.preparation_time = "Le temps de préparation doit être entre 1 et 30 minutes.";
+  if (!Number.isInteger(preparationTime) || preparationTime < 1 || preparationTime > 60) {
+    errors.preparation_time = "Le temps de préparation doit être entre 1 et 60 minutes.";
   }
 
   if (!Number.isInteger(popularityScore) || popularityScore < 0 || popularityScore > 100) {
     errors.popularity_score = "La popularité doit être entre 0 et 100.";
+  }
+
+  if (!Number.isInteger(stockQuantity) || stockQuantity < 0 || stockQuantity > 1000) {
+    errors.stock_quantity = "Le stock doit être entre 0 et 1000 unités.";
   }
 
   return errors;
@@ -142,5 +133,6 @@ export function normalizeMealPayload(form) {
     preparation_time: Number(form?.preparation_time),
     is_available: Boolean(form?.is_available),
     popularity_score: Number(form?.popularity_score),
+    stock_quantity: Number(form?.stock_quantity),
   };
 }

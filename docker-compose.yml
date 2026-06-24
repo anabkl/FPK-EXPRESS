@@ -5,10 +5,14 @@ services:
     container_name: fpk-express-api
     environment:
       APP_ENV: development
-      DATABASE_URL: sqlite:////data/fpk_smart_food.db
+      DATABASE_URL: sqlite:////data/fpk_express.db
       ALLOWED_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
-      RATE_LIMIT_REQUESTS: 120
-      RATE_LIMIT_WINDOW_SECONDS: 60
+      JWT_SECRET: ${JWT_SECRET:-development-only-secret-change-before-production-please}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-480}
+      DEMO_VENDOR_EMAIL: ${DEMO_VENDOR_EMAIL:-}
+      DEMO_VENDOR_PASSWORD: ${DEMO_VENDOR_PASSWORD:-}
+      RATE_LIMIT_REQUESTS: ${RATE_LIMIT_REQUESTS:-120}
+      RATE_LIMIT_WINDOW_SECONDS: ${RATE_LIMIT_WINDOW_SECONDS:-60}
     ports:
       - "8000:8000"
     volumes:
@@ -17,11 +21,11 @@ services:
   frontend:
     build:
       context: ./frontend
+      args:
+        VITE_API_URL: http://localhost:8000
     container_name: fpk-express-web
-    environment:
-      VITE_API_URL: http://localhost:8000
     ports:
-      - "5173:5173"
+      - "5173:80"
     depends_on:
       - backend
 

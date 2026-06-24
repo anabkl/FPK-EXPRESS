@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChefHat, LayoutDashboard, LogIn, LogOut, Menu, Moon, ShoppingBag, Store, Sun, UserRound, Wifi, WifiOff, X } from "lucide-react";
+import { BookOpen, ChefHat, ExternalLink, LayoutDashboard, LogIn, LogOut, Menu, Moon, ShoppingBag, Store, Sun, UserRound, Wifi, WifiOff, X } from "lucide-react";
+
+const DOSSIER_URL = "https://anabkl.github.io/fpk-express-startup-case/";
 
 const navItems = [
   { key: "landing", label: "Accueil", icon: ChefHat },
@@ -16,7 +18,7 @@ function ApiStatus({ isApiOnline, mobile = false }) {
       } ${mobile ? "w-full justify-center" : ""}`}
     >
       {isApiOnline ? <Wifi size={14} /> : <WifiOff size={14} />}
-      {isApiOnline ? "API active" : "Mode démo"}
+      {isApiOnline ? "API active" : "API indisponible"}
     </span>
   );
 }
@@ -54,8 +56,8 @@ function ThemeToggle({ theme, onToggleTheme, mobile = false }) {
   );
 }
 
-function SessionActions({ userRole, activeView, onLoginClick, onLogout, mobile = false }) {
-  if (!userRole) {
+function SessionActions({ user, activeView, onLoginClick, onLogout, mobile = false }) {
+  if (!user) {
     return (
       <button
         onClick={onLoginClick}
@@ -77,7 +79,7 @@ function SessionActions({ userRole, activeView, onLoginClick, onLogout, mobile =
         }`}
       >
         <UserRound size={14} />
-        {userRole === "vendor" ? "Vendor" : "Student"}
+        {user.role === "vendor" ? "Vendeur" : "Étudiant"}
       </span>
       <button onClick={onLogout} className="icon-button" aria-label="Se déconnecter" title="Déconnexion">
         <LogOut size={18} />
@@ -86,7 +88,24 @@ function SessionActions({ userRole, activeView, onLoginClick, onLogout, mobile =
   );
 }
 
-export default function Navbar({ activeView, onNavigate, isApiOnline, theme, onToggleTheme, userRole, onLogout }) {
+function DossierLink({ mobile = false }) {
+  return (
+    <a
+      href={DOSSIER_URL}
+      target="_blank"
+      rel="noreferrer"
+      className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-navy ${
+        mobile ? "w-full justify-start" : ""
+      }`}
+    >
+      <BookOpen size={16} />
+      Dossier entrepreneurial
+      <ExternalLink size={13} />
+    </a>
+  );
+}
+
+export default function Navbar({ activeView, onNavigate, isApiOnline, theme, onToggleTheme, user, onLogout }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   function handleNavigate(key) {
@@ -112,7 +131,7 @@ export default function Navbar({ activeView, onNavigate, isApiOnline, theme, onT
           </span>
           <span>
             <span className="block text-base font-black tracking-tight">FPK-EXPRESS</span>
-            <span className="block text-xs font-medium text-slate-500">AI-powered preorder & pickup</span>
+            <span className="block text-xs font-medium text-slate-500">Précommande & retrait campus</span>
           </span>
         </button>
 
@@ -128,9 +147,10 @@ export default function Navbar({ activeView, onNavigate, isApiOnline, theme, onT
               />
             );
           })}
+          <DossierLink />
           <ApiStatus isApiOnline={isApiOnline} />
           <SessionActions
-            userRole={userRole}
+            user={user}
             activeView={activeView}
             onLoginClick={() => handleNavigate("login")}
             onLogout={handleLogoutClick}
@@ -173,6 +193,7 @@ export default function Navbar({ activeView, onNavigate, isApiOnline, theme, onT
                   mobile
                 />
               ))}
+              <DossierLink mobile />
               <div className="grid grid-cols-[1fr_auto] gap-2 pt-1">
                 <ApiStatus isApiOnline={isApiOnline} mobile />
                 <button
@@ -184,7 +205,7 @@ export default function Navbar({ activeView, onNavigate, isApiOnline, theme, onT
                 </button>
               </div>
               <SessionActions
-                userRole={userRole}
+                user={user}
                 activeView={activeView}
                 onLoginClick={() => handleNavigate("login")}
                 onLogout={handleLogoutClick}

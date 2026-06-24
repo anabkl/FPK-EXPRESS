@@ -134,7 +134,7 @@ export function DashboardSkeleton({ variant = "student" }) {
 
 export function AIInsightsSkeleton() {
   return (
-    <section className="bg-navy py-16 text-white" role="status" aria-label="Chargement des insights IA">
+    <section className="bg-navy py-16 text-white" role="status" aria-label="Chargement des suggestions intelligentes">
       <div className="section-shell">
         <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
           <div className="space-y-3">

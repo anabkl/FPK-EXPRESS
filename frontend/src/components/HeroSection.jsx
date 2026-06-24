@@ -38,14 +38,13 @@ export default function HeroSection({ onNavigate, meals }) {
             FPK-EXPRESS
           </motion.span>
           <motion.p variants={heroItem} className="mt-4 max-w-xl text-sm font-black uppercase text-fresh">
-            AI-powered preorder & pickup platform for FPK Khouribga students.
+            Précommande et retrait chez les snacks partenaires de la FPK Khouribga.
           </motion.p>
           <motion.h1 variants={heroItem} className="mt-4 max-w-4xl text-4xl font-black leading-tight tracking-normal text-navy sm:text-5xl lg:text-6xl">
             Commandez votre repas avant la pause. Récupérez-le sans faire la queue.
           </motion.h1>
           <motion.p variants={heroItem} className="mt-5 max-w-2xl text-lg leading-8 text-slate-600">
-            Une solution intelligente pour les étudiants de la FPK Khouribga afin de gagner du temps, éviter le stress
-            et manger mieux.
+            FPK-EXPRESS facilite la précommande et le retrait rapide chez les snacks partenaires autour de la FPK Khouribga.
           </motion.p>
 
           <motion.div variants={heroItem} className="mt-8 flex flex-col gap-3 sm:flex-row">
@@ -102,8 +101,8 @@ export default function HeroSection({ onNavigate, meals }) {
           <div className="absolute -bottom-5 right-4 w-64 rounded-lg border border-slate-200 bg-white p-4 shadow-soft sm:right-8">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-bold text-slate-500">Commande #EXP24</p>
-                <p className="mt-1 text-xl font-black text-fresh">Ready</p>
+                <p className="text-sm font-bold text-slate-500">Aperçu du suivi</p>
+                <p className="mt-1 text-xl font-black text-fresh">Prête</p>
               </div>
               <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-emerald-50 text-fresh">
                 <Utensils size={24} />

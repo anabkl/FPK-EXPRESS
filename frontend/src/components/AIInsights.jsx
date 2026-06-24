@@ -9,6 +9,9 @@ export default function AIInsights({ recommendations, peakHours, stats, isLoadin
   const recommendationItems = recommendations?.recommendations || [];
   const predictions = peakHours?.predictions || [];
   const topPredictions = predictions.slice(0, 5);
+  const averagePreparation = recommendationItems.length
+    ? Math.round(recommendationItems.reduce((total, item) => total + item.meal.preparation_time, 0) / recommendationItems.length)
+    : 0;
 
   if (isLoading) return <AIInsightsSkeleton />;
 
@@ -23,14 +26,13 @@ export default function AIInsights({ recommendations, peakHours, stats, isLoadin
           className="flex flex-col justify-between gap-5 md:flex-row md:items-end"
         >
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.18em] text-orange-300">AI insights preview</p>
+            <p className="text-sm font-black uppercase tracking-[0.18em] text-orange-300">Suggestions intelligentes</p>
             <h2 className="mt-3 text-3xl font-black tracking-normal sm:text-4xl">
               Des signaux simples pour fluidifier la pause.
             </h2>
           </div>
           <p className="max-w-2xl text-base leading-7 text-slate-300">
-            La V1 utilise les commandes, les scores de popularité et le rythme des pauses pour recommander les bons
-            plats au bon moment.
+            Les estimations reposent sur des règles opérationnelles et les données disponibles du MVP.
           </p>
         </motion.div>
 
@@ -51,16 +53,16 @@ export default function AIInsights({ recommendations, peakHours, stats, isLoadin
                 <BrainCircuit size={24} />
               </div>
               <div>
-                <p className="text-sm font-semibold text-orange-200">Moteur de recommandation</p>
-                <h3 className="text-2xl font-black">{summary.top_recommendation || "Sandwich Poulet"}</h3>
+                <p className="text-sm font-semibold text-orange-200">Suggestion du moment</p>
+                <h3 className="text-2xl font-black">{summary.top_recommendation || "Aucune suggestion"}</h3>
               </div>
             </div>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-3">
               {[
-                { label: "Commandes actives", value: summary.active_orders ?? 3, icon: Activity },
+                { label: "Commandes actives", value: summary.active_orders ?? 0, icon: Activity },
                 { label: "Charge campus", value: summary.campus_load || "Normale", icon: TrendingUp },
-                { label: "Attente moyenne", value: `${stats?.average_waiting_time || 9.8} min`, icon: Clock },
+                { label: "Préparation indicative", value: averagePreparation ? `${averagePreparation} min` : "—", icon: Clock },
               ].map((item) => {
                 const Icon = item.icon;
                 return (
@@ -80,7 +82,7 @@ export default function AIInsights({ recommendations, peakHours, stats, isLoadin
             <div className="mt-5 rounded-lg bg-white p-4 text-navy">
               <div className="flex items-start gap-3">
                 <Sparkles className="mt-1 text-primary" size={20} />
-                <p className="text-sm font-semibold leading-6">{summary.insight}</p>
+                <p className="text-sm font-semibold leading-6">{summary.insight || "Les tendances apparaîtront avec les premières commandes persistées."}</p>
               </div>
             </div>
 
@@ -88,8 +90,8 @@ export default function AIInsights({ recommendations, peakHours, stats, isLoadin
               <div className="mt-5">
                 <EmptyState
                   icon={Sparkles}
-                  title="Aucune recommandation IA"
-                  message="Le moteur affichera ses suggestions dès que les données de menu seront disponibles."
+                  title="Aucune suggestion disponible"
+                  message="Les suggestions apparaîtront dès que les données du menu seront disponibles."
                   compact
                 />
               </div>
@@ -103,8 +105,8 @@ export default function AIInsights({ recommendations, peakHours, stats, isLoadin
           >
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-bold text-slate-500">Peak hour prediction</p>
-                <h3 className="text-2xl font-black">Prévoir les pics de demande</h3>
+                <p className="text-sm font-bold text-slate-500">Tendance des heures de pointe</p>
+                <h3 className="text-2xl font-black">Prévision basée sur les commandes</h3>
               </div>
               <Clock className="text-primary" size={26} />
             </div>
@@ -130,6 +132,14 @@ export default function AIInsights({ recommendations, peakHours, stats, isLoadin
                   </div>
                 </motion.div>
               ))}
+              {topPredictions.length === 0 && (
+                <EmptyState
+                  icon={Clock}
+                  title="Aucune tendance disponible"
+                  message="Les heures de pointe apparaîtront après les premières commandes."
+                  compact
+                />
+              )}
             </div>
           </motion.div>
         </motion.div>

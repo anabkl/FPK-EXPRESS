@@ -1,6 +1,6 @@
 # FPK-EXPRESS Project Roadmap
 
-FPK-EXPRESS is an AI-powered preorder and pickup platform for FPK Khouribga students. This roadmap explains how the MVP can evolve from a university demo into a real campus startup.
+FPK-EXPRESS is a preorder and direct-pickup platform for FPK Khouribga students. This roadmap explains how the live MVP can evolve into a wider campus service without introducing delivery.
 
 ## Phase 1 — MVP
 
@@ -8,8 +8,8 @@ FPK-EXPRESS is an AI-powered preorder and pickup platform for FPK Khouribga stud
 - Landing page with problem, survey validation, and solution.
 - Student meal browsing and preorder flow.
 - Vendor dashboard for meals and orders.
-- AI-style recommendations, waiting time estimation, and peak-hour insights.
-- Basic analytics for orders, revenue, and popular meals.
+- Rule-based suggestions, waiting-time estimation, and peak-hour trends.
+- Vendor-scoped analytics from persisted orders and menu prices.
 
 ### Technical Improvements
 - Keep frontend responsive and mobile-first.
@@ -33,10 +33,10 @@ FPK-EXPRESS is an AI-powered preorder and pickup platform for FPK Khouribga stud
 - Hygiene and verified vendor badges.
 
 ### Technical Improvements
-- Add authentication for students and vendors.
-- Move from SQLite to PostgreSQL.
-- Add backend tests for key API routes.
-- Improve AI waiting time estimation using real order data.
+- Add password recovery and account-verification workflows.
+- Operate the existing PostgreSQL production path with backups.
+- Expand backend authorization and workflow tests.
+- Improve waiting-time estimation using measured preparation data.
 - Deploy frontend and backend online.
 
 ### Business Goals
@@ -58,7 +58,7 @@ FPK-EXPRESS is an AI-powered preorder and pickup platform for FPK Khouribga stud
 - Scalable cloud deployment.
 - Role-based access control.
 - Monitoring and logging.
-- Payment or wallet integration.
+- Explore payment only after legal validation and an official authorized-provider partnership.
 - API versioning and documentation.
 
 ### Business Goals

@@ -1,258 +1,236 @@
 # FPK-EXPRESS
 
-AI-powered preorder & pickup platform for FPK Khouribga students.
+Plateforme de précommande et retrait direct pour les étudiants de la FPK Khouribga.
 
-FPK-EXPRESS is a V1 MVP that helps students preorder affordable meals and pick them up without waiting in long food or coffee queues. It is built from real field-survey validation with 23 FPK Khouribga students and is designed to feel like a credible campus startup product, not a classroom mockup.
+FPK-EXPRESS met en relation les étudiants avec des snacks partenaires autour du campus. L'étudiant commande avant sa pause, le partenaire prépare le repas, puis la commande est récupérée directement au snack. **Le produit ne propose aucune livraison et le seul paiement actif est le paiement au retrait.**
 
-## Problem Statement
+[Consulter le dossier entrepreneurial](https://anabkl.github.io/fpk-express-startup-case/)
 
-Students at FPK Khouribga lose valuable break time waiting in food and coffee queues. The lack of fast, affordable, and healthier alternatives creates stress, late arrivals, and skipped or low-quality meals.
+## Validation du problème
 
-## Survey Validation
+- 23 étudiants ont répondu à l'enquête terrain.
+- Plus de 81 % attendent au moins 15 minutes.
+- Environ 95 % sautent parfois un repas ou mangent mal pour éviter un retard.
+- 100 % se déclarent intéressés par la précommande.
+- 66,7 % accepteraient des frais de service de 1 à 2 MAD.
 
-- 23 students answered the questionnaire.
-- More than 81% wait 15 minutes or more.
-- Around 95% sometimes or often skip meals or eat badly.
-- 100% are interested in a preorder service.
-- 66.7% are willing to pay a small 1-2 MAD service fee.
-- Main complaints: high prices, hygiene concerns, lack of healthy options, and limited service hours.
+## Capacités actuelles
 
-## Features
+- Landing page publique, aperçu limité du menu et lien vers le dossier entrepreneurial.
+- Inscription publique réservée aux étudiants, connexion sécurisée étudiant/vendeur et déconnexion.
+- Mots de passe hachés avec Argon2 et jetons d'accès signés stockés dans `sessionStorage`.
+- Catalogue réel avec recherche, catégories, disponibilité, stock et snack partenaire.
+- Précommande persistée, référence de retrait, estimation opérationnelle et historique personnel.
+- Parcours vendeur limité à son snack: menu, disponibilité, commandes, statuts et analyses réelles.
+- Cycle de commande `Pending -> Preparing -> Ready -> Collected`, avec annulation contrôlée.
+- Paiement actif uniquement `PayOnPickup`, puis confirmation `PaidOnPickup` après le retrait.
+- Suggestions et tendances honnêtement basées sur des règles opérationnelles et les données disponibles.
+- Thème clair/sombre, navigation mobile, animations sobres, skeletons et états d'erreur.
 
-- Premium landing page with hero, survey stats, problem, solution, workflow, AI preview, and meal preview.
-- Student side with meal list, search, category filters, preorder modal, pickup time, estimated wait, and confirmation.
-- Student dashboard with order status: `Pending -> Preparing -> Ready`.
-- Vendor dashboard with add meal form, menu management, order status updates, revenue cards, and Recharts analytics.
-- AI-like services for popular meal recommendations, estimated waiting time, and peak-hour prediction.
-- Seeded Moroccan/FPK sample meals priced from 5 MAD to 35 MAD.
-- Mock student/vendor modes for a smooth V1 demo without authentication complexity.
-- Premium light/dark theme toggle with localStorage persistence.
-- Basic local login flow for Student and Vendor demo roles.
+FPK-EXPRESS ne prépare pas les repas, ne possède pas le stock des snacks, ne livre pas et ne conserve aucun argent.
 
 ## Architecture
 
-```text
-FPK-EXPRESS
-├── frontend/      React + Vite + TailwindCSS + Framer Motion + Lucide + Recharts
-├── backend/       FastAPI + SQLite + SQLAlchemy + Pydantic
-├── docs/          roadmap and contribution docs
-└── docker-compose.yml
+```mermaid
+flowchart LR
+    A[Browser] --> B[Vercel React / Vite]
+    B --> C[Render FastAPI]
+    C --> D[PostgreSQL]
 ```
 
-The frontend calls the FastAPI backend through `VITE_API_URL`. If the API is unavailable, the frontend falls back to demo data so the presentation remains smooth.
+```text
+frontend/                 React, Vite, TailwindCSS, Framer Motion, Recharts
+backend/app/              FastAPI, SQLAlchemy, Pydantic, auth and business rules
+backend/alembic/          Versioned database migrations
+backend/tests/            API, authorization and workflow tests
+docs/                     Deployment, security, roadmap and contribution guides
+.github/workflows/        Continuous integration
+docker-compose.yml        Production-style local containers
+```
 
-## Tech Stack
+SQLite is used locally. PostgreSQL is supported in production through `DATABASE_URL` with the Psycopg driver.
 
-Frontend :
+## API overview
 
-- React
-- Vite
-- TailwindCSS
-- Framer Motion
-- Lucide React
-- Recharts
+| Method | Endpoint | Access | Purpose |
+| --- | --- | --- | --- |
+| `GET` | `/health` | Public | Service health |
+| `POST` | `/auth/register` | Public | Create a student account |
+| `POST` | `/auth/login` | Public | Login student or seeded vendor |
+| `GET` | `/auth/me` | Authenticated | Current user |
+| `GET` | `/partners` | Public | Partner snack previews |
+| `GET` | `/meals`, `/meals/{id}` | Public | Available menu |
+| `POST/PATCH/DELETE` | `/meals...` | Vendor | Manage owned meals |
+| `POST` | `/orders` | Student | Create a persisted preorder |
+| `GET` | `/orders` | Student | Own order history only |
+| `POST` | `/orders/{id}/cancel` | Student | Cancel an own pending order |
+| `GET` | `/vendor/orders` | Vendor | Orders for the owned snack only |
+| `PATCH` | `/orders/{id}/status` | Vendor | Apply the next valid workflow state |
+| `PATCH` | `/orders/{id}/payment` | Vendor | Mark a collected order paid on pickup |
+| `GET` | `/dashboard/stats` | Vendor | Vendor-scoped operational metrics |
+| `GET` | `/ai/recommendations` | Public | Rule-based meal suggestions |
+| `GET` | `/ai/peak-hours` | Public | Trends from available order history |
 
-Backend :
+Interactive API documentation is available at `http://localhost:8000/docs` locally.
 
-- Python FastAPI
-- SQLite
-- SQLAlchemy
-- Pydantic
-- CORS middleware
+## Environment variables
 
-Deployment :
+Copy `.env.example` to `.env` for Docker Compose or export the backend values in your shell. Never commit real secrets.
 
-- Docker
-- Docker Compose
-
-## API Endpoints
-
-| Method | Endpoint | Description |
+| Variable | Scope | Description |
 | --- | --- | --- |
-| GET | `/health` | API health check |
-| GET | `/meals` | List meals with optional `category` and `search` |
-| POST | `/meals` | Create a meal |
-| GET | `/meals/{id}` | Get meal details |
-| POST | `/orders` | Create preorder |
-| GET | `/orders` | List orders |
-| PATCH | `/orders/{id}/status` | Update order status |
-| GET | `/dashboard/stats` | Vendor dashboard stats and chart data |
-| GET | `/ai/recommendations` | AI-powered meal recommendations |
-| GET | `/ai/peak-hours` | Peak-hour prediction data |
+| `VITE_API_URL` | Frontend build | Public FastAPI base URL |
+| `APP_ENV` | Backend | `development`, `test`, or `production` |
+| `DATABASE_URL` | Backend | SQLite or PostgreSQL connection URL |
+| `ALLOWED_ORIGINS` | Backend | Comma-separated exact frontend origins |
+| `JWT_SECRET` | Backend | Strong random signing secret, at least 32 characters in production |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Backend | Access-token lifetime; default `480` |
+| `DEMO_VENDOR_EMAIL` | Backend | Seeded vendor email; optional locally |
+| `DEMO_VENDOR_PASSWORD` | Backend | Strong seeded vendor password |
+| `RATE_LIMIT_REQUESTS` | Backend | Requests allowed per process/IP window |
+| `RATE_LIMIT_WINDOW_SECONDS` | Backend | Rate-limit window duration |
 
-## Run Locally on macOS
+Vendor registration is never public. A vendor account is seeded only when valid `DEMO_VENDOR_EMAIL` and `DEMO_VENDOR_PASSWORD` values are supplied to the backend.
 
-Open two terminal windows from the project root.
+## Local setup on macOS
 
-### 1. Backend
+### Backend
 
 ```bash
 cd backend
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+alembic -c alembic.ini upgrade head
 uvicorn app.main:app --reload --port 8000
 ```
 
-Backend: http://localhost:8000  
-API Docs: http://localhost:8000/docs
+### Frontend
 
-### 2. Frontend
+In a second terminal:
 
 ```bash
 cd frontend
-npm install
+npm ci
 npm run dev
 ```
 
-Frontend: http://localhost:5173
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:8000`
+- API docs: `http://localhost:8000/docs`
 
-## Run with Docker Compose
+To enable the local vendor account, export non-placeholder `DEMO_VENDOR_EMAIL` and `DEMO_VENDOR_PASSWORD` values before the migration/start command.
 
-From the project root:
+## Database migrations
 
 ```bash
+cd backend
+source .venv/bin/activate
+alembic -c alembic.ini upgrade head
+alembic -c alembic.ini current
+```
+
+The first migration creates the live schema. When it detects the legacy demo tables, it preserves catalogue meals, creates partner ownership fields, and removes fabricated historical orders rather than migrating them as real activity.
+
+## Docker Compose
+
+```bash
+cp .env.example .env
+# Replace JWT_SECRET and vendor placeholders in .env.
 docker compose up --build
 ```
 
-Then open:
+The frontend image uses `npm ci`, creates a production Vite bundle, and serves it through Nginx at `http://localhost:5173`. The backend container runs Alembic before Uvicorn.
 
-- Frontend: http://localhost:5173
-- Backend: http://localhost:8000
-- API Docs: http://localhost:8000/docs
+## Tests and verification
 
-## Screenshots
-
-Add screenshots here after running the demo:
-
-- `screenshots/landing-page.png`
-- `screenshots/student-dashboard.png`
-- `screenshots/vendor-dashboard.png`
-- `screenshots/ai-insights.png`
-- `screenshots/api-docs.png`
-
-## Demo Flow
-
-1. Open landing page.
-2. Filter meals.
-3. Place preorder.
-4. Open vendor dashboard.
-5. Change order status from `Pending` to `Ready`.
-6. Show AI insights and analytics.
-
-## Why This Is Not Just A School Project
-
-- Validated problem: the MVP starts from field data, not assumptions.
-- Real users: the survey reflects actual FPK Khouribga student behavior and pain points.
-- Startup business model: 66.7% willingness to pay a 1-2 MAD fee supports a simple service-fee path.
-- AI insights: recommendations, waiting-time estimation, and peak-hour prediction create operational value.
-- Scalable architecture: React/Vite frontend, FastAPI backend, SQLite for V1, and Docker for repeatable deployment.
-
-## Resilience UX
-
-FPK-EXPRESS includes graceful UI states for real demo conditions:
-
-- API failures show a retryable error banner while preserving demo data.
-- Loading states make initial API synchronization visible.
-- Empty states cover no meals found, no orders available, and no AI recommendations available.
-- Local fallback behavior keeps the student and vendor flows usable when the backend is temporarily unavailable.
-
-## User Feedback & Validation
-
-- Toast notifications confirm order creation, meal creation, order status updates, and API fallback behavior.
-- Student preorder validation covers name, department, pickup time, and meal quantity before submission.
-- Vendor meal validation checks required fields, MAD price range, preparation time, popularity score, and image URL.
-- Inline validation messages keep the forms mobile-friendly and easy to correct during a live demo.
-
-## Basic Login & Roles
-
-- The V1 uses a simple local login page for Student and Vendor roles without JWT or backend authentication.
-- The selected role is saved in `localStorage` as `fpk-express-role`.
-- Student login opens the student preorder dashboard, while Vendor login opens the vendor operations dashboard.
-- Logout clears localStorage and returns the user to the public landing page without breaking demo fallback data.
-
-## Mobile-first UX & Loading States
-
-- The navbar uses a responsive hamburger menu on mobile while keeping FPK-EXPRESS branding visible.
-- Desktop navigation remains direct and compact for demos on larger screens.
-- Skeleton loaders support smoother loading for meal grids, dashboards, and AI insights.
-- Loading states preserve the local demo fallback behavior if the backend is unavailable.
-
-## Animation Polish
-
-- Landing sections use subtle reveal and staggered card motion to make the story feel more premium.
-- Meal, dashboard, and AI insight cards use fast hover lift effects without changing layout.
-- Animations stay short and restrained so the demo feels responsive on mobile and desktop.
-
-## Future Improvements
-
-- Student accounts and vendor accounts.
-- Real online payment or wallet balance in MAD.
-- QR pickup confirmation.
-- Vendor availability hours and stock limits.
-- Hygiene score and verified vendor badges.
-- Smarter recommendations based on budget, department schedule, and past orders.
-- Push notifications when an order becomes ready.
-- Admin dashboard for FPK entrepreneurship reporting.
-
-## How To Present It To The Professor
-
-1. Start with the validated problem and show the survey numbers.
-2. Open the landing page and explain the value proposition in one sentence.
-3. Switch to the student side, filter meals, place a preorder, and show the confirmation.
-4. Switch to the vendor dashboard and change the order status from `Pending` to `Preparing` to `Ready`.
-5. Show the charts and AI insights as the future-facing part of the MVP.
-6. Close with the business model: a small 1-2 MAD service fee, vendor adoption, and campus expansion.
-
-## Verification
-
-Recommended checks before pushing:
+```bash
+cd backend
+source .venv/bin/activate
+pytest
+```
 
 ```bash
 cd frontend
+npm ci
 npm run build
 ```
 
 ```bash
 PYTHONPYCACHEPREFIX=/tmp/fpk-express-pycache python3 -m py_compile backend/app/*.py
-```
-
-```bash
 docker compose config
+git diff --check
 ```
 
-## Dark Mode
+CI runs the backend tests, Python compile check, frontend clean install/build, Compose validation and whitespace check on every push and pull request.
 
-FPK-EXPRESS now includes a premium Tailwind-powered dark mode:
+## Security model
 
-- Navbar theme toggle with sun/moon icon states.
-- Theme preference saved in `localStorage` using `fpk-express-theme`.
-- Smooth color transitions across cards, forms, dashboards, charts, modals, toasts, and landing sections.
-- System preference is used on first visit when no saved theme exists.
+- Backend authorization enforces student ownership and vendor snack ownership on every protected route.
+- Passwords use Argon2; signed access tokens expire and never expose `JWT_SECRET` to the frontend.
+- Pydantic validates identities, meal data, quantities, pickup times, stock, statuses and payment transitions.
+- Security headers, exact-origin CORS, response-time logging and an in-memory IP limiter remain enabled.
+- Logs contain method, path, status and duration only.
 
-## API Performance
+This remains MVP authentication: bearer tokens live in `sessionStorage`, there is no password reset or account verification, and the process-local rate limiter is not distributed. See [docs/SECURITY.md](docs/SECURITY.md).
 
-- Read-heavy endpoints use a lightweight 30-second in-memory TTL cache for meals, dashboard stats, AI recommendations, and peak-hour predictions.
-- Meal and order mutations clear the read cache so the student and vendor dashboards stay fresh after changes.
-- The FastAPI middleware logs every request duration and returns `X-Response-Time-ms` for quick local performance checks.
+## API performance
 
-## Security Hardening
+Public menu, suggestions and peak-hour reads use a lightweight process-local TTL cache. Menu, stock, order and partner changes invalidate cached reads. Scoped student/vendor data is always loaded with authorization and is not shared through the public cache.
 
-- Role-based UI protection keeps Student and Vendor dashboards separated while leaving the public landing/demo sections accessible.
-- Frontend session helpers validate the localStorage role and prevent invalid roles from being stored.
-- Student and vendor form inputs are trimmed, bounded, sanitized, and validated before API submission.
-- Backend Pydantic schemas enforce allowed departments, meal categories, status values, price bounds, quantity bounds, preparation-time bounds, and popularity-score bounds.
-- API responses include baseline security headers: `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, and restrictive `Permissions-Policy`.
-- CORS origins are configurable with `ALLOWED_ORIGINS`; wildcard origins are rejected when `APP_ENV=production`.
-- A lightweight in-memory IP rate limiter protects the MVP from noisy local abuse while keeping the demo simple.
-- MVP auth is intentionally local-only and not a production security boundary. Production should add real authentication, secure sessions, HTTPS, audit logging, secret management, and database migrations.
-- See [docs/SECURITY.md](docs/SECURITY.md) for the full security model and roadmap.
+## Mobile-first UX & loading states
 
-## Performance
-FPK-EXPRESS is designed with a lightweight frontend, optimized API structure, and Docker-ready deployment workflow.
+The approved interface keeps its responsive hamburger navigation, dark mode and compact dashboard layouts. Skeleton loaders cover the menu, student/vendor dashboard cards and insights so network activity does not shift the layout.
 
-## Contributors
+## Resilience, feedback and validation
 
-- Youssef Lahraoui — README review and project feedback.
+Failed production writes show a French error and never create a fake order, meal or status update. Form values remain available for correction/retry. Development may display clearly labelled local catalogue data when the API is offline, but ordering still requires the real backend. Toasts confirm successful authentication and persisted operations.
 
-<!-- UX polish complete -->
+## Animation polish
+
+Landing sections, meal cards, dashboard cards and insight panels retain short Framer Motion reveals and subtle hover feedback. Motion does not change the approved layout or block interaction.
+
+## Screenshots
+
+The documentation is ready for final deployment captures:
+
+| Surface | Target file |
+| --- | --- |
+| Landing page | `screenshots/landing-page.png` |
+| Student dashboard | `screenshots/student-dashboard.png` |
+| Vendor dashboard | `screenshots/vendor-dashboard.png` |
+| Smart insights | `screenshots/ai-insights.png` |
+| FastAPI docs | `screenshots/api-docs.png` |
+
+## Demo flow
+
+1. Open the public landing page and the entrepreneurship dossier.
+2. Register a student account, filter meals and create a preorder.
+3. Show the reference, payment-on-pickup state and personal order history.
+4. Log out, then log in with the privately supplied vendor account.
+5. Move the order from En attente to En préparation, Prête and Récupérée.
+6. Mark it Payé au retrait and show the real vendor analytics.
+
+## Why this is not just a school project
+
+- The problem and willingness to use/pay were validated with real FPK students.
+- Real accounts, persisted orders and server-side ownership replace browser-only role simulation.
+- The business model is an intermediary service, with clear responsibility boundaries for partner snacks.
+- Operational suggestions are transparent about their rule-based MVP method.
+- React/Vite, FastAPI, Alembic, PostgreSQL support, CI and containers form a scalable deployment base.
+
+## Deployment
+
+The intended path is Vercel for the frontend, Render for FastAPI and Render PostgreSQL or Neon for the database. Follow [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for the two-stage origin setup, migrations, exact configuration and smoke checks.
+
+No deployment is claimed in this repository until a real public frontend URL, backend URL and production smoke test are confirmed.
+
+## Honest limitations and roadmap
+
+- No delivery, cart combining multiple snacks, push notification, password reset or platform admin console.
+- A preorder currently contains one meal type from one snack partner.
+- In-memory cache and rate limiting reset per backend process.
+- Operational estimates are rules/trends, not a trained or evaluated machine-learning model.
+- Legal, partner and operating procedures still require validation before broader campus rollout.
+
+**Future payment disclaimer:** `FPK Wallet — Bientôt disponible` is informational only. No wallet, MT Cash, WhatsApp top-up, QR payment, card processing, deposit, withdrawal or money storage is active. A future payment feature would require legal validation and an official partnership with an authorized payment provider.

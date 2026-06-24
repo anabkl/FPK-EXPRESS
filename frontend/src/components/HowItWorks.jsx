@@ -4,9 +4,9 @@ import { cardReveal, sectionReveal, staggerContainer, subtleLift } from "../util
 
 const steps = [
   { title: "Choisir", text: "Filtrer par budget, healthy, sandwichs, tacos ou boissons.", icon: Check },
-  { title: "Planifier", text: "Sélectionner un pickup time adapté à la pause.", icon: Clock },
-  { title: "Confirmer", text: "Voir le prix en MAD, le délai estimé et le statut.", icon: CreditCard },
-  { title: "Récupérer", text: "Passer au pickup quand la commande devient Ready.", icon: PackageCheck },
+  { title: "Planifier", text: "Sélectionner une heure de retrait adaptée à la pause.", icon: Clock },
+  { title: "Confirmer", text: "Voir le prix en MAD, le délai estimé et le paiement au retrait.", icon: CreditCard },
+  { title: "Récupérer", text: "Passer au snack partenaire quand la commande devient prête.", icon: PackageCheck },
 ];
 
 export default function HowItWorks() {
@@ -21,7 +21,7 @@ export default function HowItWorks() {
           className="flex flex-col justify-between gap-5 md:flex-row md:items-end"
         >
           <div>
-            <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">How it works</p>
+            <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">Fonctionnement</p>
             <h2 className="mt-3 text-3xl font-black tracking-normal text-navy sm:text-4xl">Quatre actions simples.</h2>
           </div>
           <p className="max-w-2xl text-base leading-7 text-slate-600">

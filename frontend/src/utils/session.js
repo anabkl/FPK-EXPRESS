@@ -1,9 +1,10 @@
-export const ROLE_STORAGE_KEY = "fpk-express-role";
+export const TOKEN_STORAGE_KEY = "fpk-express-access-token";
+export const LEGACY_ROLE_STORAGE_KEY = "fpk-express-role";
 export const VALID_ROLES = ["student", "vendor"];
 
-function getStorage() {
+function getSessionStorage() {
   try {
-    return window.localStorage;
+    return window.sessionStorage;
   } catch {
     return null;
   }
@@ -14,36 +15,38 @@ export function normalizeRole(role) {
   return VALID_ROLES.includes(value) ? value : null;
 }
 
-export function getCurrentRole() {
-  const storage = getStorage();
-  if (!storage) return null;
-
-  const role = normalizeRole(storage.getItem(ROLE_STORAGE_KEY));
-  if (!role) storage.removeItem(ROLE_STORAGE_KEY);
-  return role;
+export function getAccessToken() {
+  return getSessionStorage()?.getItem(TOKEN_STORAGE_KEY) || null;
 }
 
-export function setCurrentRole(role) {
-  const storage = getStorage();
-  const normalizedRole = normalizeRole(role);
-  if (!storage || !normalizedRole) {
+export function setAccessToken(token) {
+  const normalizedToken = String(token || "").trim();
+  if (!normalizedToken) {
     clearSession();
     return null;
   }
+  getSessionStorage()?.setItem(TOKEN_STORAGE_KEY, normalizedToken);
+  clearLegacyRoleSession();
+  return normalizedToken;
+}
 
-  storage.setItem(ROLE_STORAGE_KEY, normalizedRole);
-  return normalizedRole;
+export function clearLegacyRoleSession() {
+  try {
+    window.localStorage.removeItem(LEGACY_ROLE_STORAGE_KEY);
+  } catch {
+    // Storage can be unavailable in restrictive browser contexts.
+  }
 }
 
 export function clearSession() {
-  const storage = getStorage();
-  storage?.clear();
+  getSessionStorage()?.removeItem(TOKEN_STORAGE_KEY);
+  clearLegacyRoleSession();
 }
 
-export function isStudent(role = getCurrentRole()) {
+export function isStudent(role) {
   return normalizeRole(role) === "student";
 }
 
-export function isVendor(role = getCurrentRole()) {
+export function isVendor(role) {
   return normalizeRole(role) === "vendor";
 }

@@ -25,7 +25,7 @@ export default function ChartsSection({ stats }) {
       <div className="card p-5 xl:col-span-2">
         <div className="mb-4 flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-bold text-slate-500">Orders per hour</p>
+            <p className="text-sm font-bold text-slate-500">Commandes par heure</p>
             <h3 className="text-xl font-black text-navy">Flux de commandes</h3>
           </div>
         </div>
@@ -43,8 +43,8 @@ export default function ChartsSection({ stats }) {
       </div>
 
       <div className="card p-5">
-        <p className="text-sm font-bold text-slate-500">Popular meals</p>
-        <h3 className="text-xl font-black text-navy">Best sellers</h3>
+        <p className="text-sm font-bold text-slate-500">Plats les plus commandés</p>
+        <h3 className="text-xl font-black text-navy">Choix fréquents</h3>
         <div className="mt-4 h-72">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -60,7 +60,7 @@ export default function ChartsSection({ stats }) {
       </div>
 
       <div className="card p-5 xl:col-span-3">
-        <p className="text-sm font-bold text-slate-500">Average waiting time</p>
+        <p className="text-sm font-bold text-slate-500">Attente moyenne</p>
         <h3 className="text-xl font-black text-navy">Temps d'attente estimé</h3>
         <div className="mt-4 h-72">
           <ResponsiveContainer width="100%" height="100%">
