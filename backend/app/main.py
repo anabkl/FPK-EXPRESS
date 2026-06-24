@@ -5,13 +5,15 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from time import perf_counter
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy.orm import Session
 
 from .config import get_settings, validate_production_settings
-from .database import SessionLocal
+from .database import SessionLocal, get_db
+from .models import Meal, SnackPartner, User
 from .routes import router
 from .security import SECURITY_HEADERS, build_rate_limiter, get_allowed_origins
 from .seed import seed_database
@@ -89,11 +91,25 @@ async def validation_exception_handler(_: Request, exc: RequestValidationError) 
 
 
 @app.get("/health")
-def health_check() -> dict:
+def health_check(db: Session = Depends(get_db)) -> dict:
+    partner_count = db.query(SnackPartner).count()
+    meal_count = db.query(Meal).count()
+    vendor_ready = (
+        db.query(SnackPartner)
+        .join(User, SnackPartner.owner_id == User.id)
+        .filter(User.role == "vendor", User.is_active.is_(True))
+        .first()
+        is not None
+    )
     return {
         "status": "ok",
         "service": "FPK-EXPRESS",
         "timestamp": datetime.now(UTC).isoformat(),
+        "readiness": {
+            "database": "ok",
+            "catalogue_ready": partner_count > 0 and meal_count > 0,
+            "vendor_ready": vendor_ready,
+        },
     }
 
 

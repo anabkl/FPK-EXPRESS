@@ -28,6 +28,11 @@ def test_health_endpoint(client):
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+    assert response.json()["readiness"] == {
+        "database": "ok",
+        "catalogue_ready": True,
+        "vendor_ready": True,
+    }
 
 
 def test_production_cors_recovers_from_placeholder_and_normalizes_origins():
