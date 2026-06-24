@@ -13,6 +13,8 @@ DEFAULT_ALLOWED_ORIGINS = (
     "http://127.0.0.1:3000",
 )
 
+PRODUCTION_FRONTEND_ORIGIN = "https://fpk-express.vercel.app"
+
 SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
@@ -21,15 +23,32 @@ SECURITY_HEADERS = {
 }
 
 
-def get_allowed_origins() -> list[str]:
-    settings = get_settings()
-    raw_origins = settings.allowed_origins or ",".join(DEFAULT_ALLOWED_ORIGINS)
-    origins = [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
+def normalize_allowed_origins(raw_origins: str, is_production: bool) -> list[str]:
+    origins = [origin.strip().rstrip("/") for origin in raw_origins.split(",") if origin.strip()]
     if not origins:
         origins = list(DEFAULT_ALLOWED_ORIGINS)
 
-    if settings.is_production and "*" in origins:
+    if is_production and "*" in origins:
         raise RuntimeError("ALLOWED_ORIGINS cannot contain '*' when APP_ENV=production")
+
+    if is_production:
+        origins = [
+            origin
+            for origin in origins
+            if origin != "https://placeholder.invalid"
+            and not origin.startswith("http://localhost")
+            and not origin.startswith("http://127.0.0.1")
+        ]
+        if PRODUCTION_FRONTEND_ORIGIN not in origins:
+            origins.append(PRODUCTION_FRONTEND_ORIGIN)
+
+    return list(dict.fromkeys(origins))
+
+
+def get_allowed_origins() -> list[str]:
+    settings = get_settings()
+    raw_origins = settings.allowed_origins or ",".join(DEFAULT_ALLOWED_ORIGINS)
+    origins = normalize_allowed_origins(raw_origins, settings.is_production)
 
     return origins
 

@@ -5,6 +5,7 @@ from zoneinfo import ZoneInfo
 
 from app.auth import hash_password
 from app.models import Meal, SnackPartner, User
+from app.security import PRODUCTION_FRONTEND_ORIGIN, normalize_allowed_origins
 
 
 def future_pickup_time(minutes=30):
@@ -27,6 +28,11 @@ def test_health_endpoint(client):
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json()["status"] == "ok"
+
+
+def test_production_cors_recovers_from_placeholder_and_normalizes_origins():
+    assert normalize_allowed_origins("https://placeholder.invalid", True) == [PRODUCTION_FRONTEND_ORIGIN]
+    assert normalize_allowed_origins(f"{PRODUCTION_FRONTEND_ORIGIN}/", True) == [PRODUCTION_FRONTEND_ORIGIN]
 
 
 def test_student_registration_and_duplicate_email_rejection(client):
