@@ -76,7 +76,7 @@ export const sampleMeals = [
   },
   {
     id: 7,
-    name: "Couscous Friday Bowl",
+    name: "Bol Couscous du Vendredi",
     category: "Healthy",
     price: 35,
     description: "Bol couscous revisité avec légumes, pois chiches et poulet.",
@@ -87,7 +87,7 @@ export const sampleMeals = [
   },
   {
     id: 8,
-    name: "Budget Student Menu",
+    name: "Menu Budget Étudiant",
     category: "Budget etudiant",
     price: 20,
     description: "Mini sandwich, boisson et fruit pour un repas simple et abordable.",

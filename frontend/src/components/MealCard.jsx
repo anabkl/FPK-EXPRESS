@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Clock, Flame, ShoppingBag, Star } from "lucide-react";
+import { Clock, Flame, ShoppingBag, Store } from "lucide-react";
 import { cardReveal, subtleLift } from "../utils/motion.js";
 
 export default function MealCard({ meal, onSelectMeal, compact = false }) {
@@ -28,6 +28,12 @@ export default function MealCard({ meal, onSelectMeal, compact = false }) {
           <div>
             <p className="text-xs font-black uppercase tracking-[0.14em] text-primary">{meal.category}</p>
             <h3 className="mt-1 text-lg font-black leading-6 text-navy">{meal.name}</h3>
+            {meal.snack_partner?.name && (
+              <p className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-slate-500">
+                <Store size={13} />
+                {meal.snack_partner.name}
+              </p>
+            )}
           </div>
           <p className="shrink-0 rounded-lg bg-emerald-50 px-3 py-2 text-sm font-black text-fresh">{meal.price} MAD</p>
         </div>
@@ -39,9 +45,8 @@ export default function MealCard({ meal, onSelectMeal, compact = false }) {
             <Clock size={15} />
             {meal.preparation_time} min
           </span>
-          <span className="inline-flex items-center gap-1 rounded-lg bg-slate-100 px-2.5 py-1.5 font-semibold">
-            <Star size={15} />
-            {meal.popularity_score}%
+          <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 px-2.5 py-1.5 font-semibold text-fresh">
+            Disponible
           </span>
         </div>
 

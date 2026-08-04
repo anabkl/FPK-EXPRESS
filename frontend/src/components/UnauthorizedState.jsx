@@ -3,8 +3,8 @@ import { Home, LogIn, ShieldAlert } from "lucide-react";
 import { sectionReveal } from "../utils/motion.js";
 
 const roleLabels = {
-  student: "Student",
-  vendor: "Vendor",
+  student: "étudiant",
+  vendor: "vendeur",
 };
 
 export default function UnauthorizedState({ currentRole, requestedRole, onGoHome, onGoDashboard, onSwitchRole }) {
@@ -23,17 +23,17 @@ export default function UnauthorizedState({ currentRole, requestedRole, onGoHome
         <p className="mt-6 text-sm font-black uppercase tracking-[0.18em] text-primary">Accès limité</p>
         <h1 className="mt-3 text-3xl font-black tracking-normal text-navy">Cet espace n'est pas disponible pour ce rôle.</h1>
         <p className="mx-auto mt-3 max-w-xl text-sm font-semibold leading-6 text-slate-600">
-          Vous êtes connecté en mode {roleLabels[currentRole] || "démo"} et vous essayez d'ouvrir l'espace{" "}
-          {roleLabels[requestedRole] || "protégé"}. Changez de rôle pour continuer, ou revenez à votre dashboard.
+          Vous êtes connecté comme {roleLabels[currentRole] || "utilisateur"} et vous essayez d'ouvrir l'espace{" "}
+          {roleLabels[requestedRole] || "protégé"}. Utilisez le compte autorisé ou revenez à votre tableau de bord.
         </p>
 
         <div className="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
           <button onClick={onGoDashboard} className="primary-button">
-            Retour à mon dashboard
+            Retour à mon tableau de bord
           </button>
           <button onClick={onSwitchRole} className="secondary-button">
             <LogIn size={18} />
-            Changer de rôle
+            Changer de compte
           </button>
           <button onClick={onGoHome} className="secondary-button">
             <Home size={18} />

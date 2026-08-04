@@ -5,7 +5,7 @@ import { cardReveal, sectionReveal, staggerContainer, subtleLift } from "../util
 const solutions = [
   {
     title: "Précommande mobile",
-    text: "L'étudiant choisit son plat, l'heure de pickup et confirme avant la pause.",
+    text: "L'étudiant choisit son plat, l'heure de retrait et confirme avant la pause.",
     icon: ScanLine,
   },
   {
@@ -14,8 +14,8 @@ const solutions = [
     icon: BellRing,
   },
   {
-    title: "Pickup sans friction",
-    text: "Le statut Ready indique quand récupérer le repas, sans file longue.",
+    title: "Retrait sans friction",
+    text: "Le statut Prête indique quand récupérer le repas, sans file longue.",
     icon: BadgeCheck,
   },
 ];
@@ -32,7 +32,7 @@ export default function SolutionSection() {
         >
           <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">Solution</p>
           <h2 className="mt-3 text-3xl font-black tracking-normal text-navy sm:text-4xl">
-            Une cantine plus prévisible, pensée pour le rythme FPK.
+            Un retrait plus prévisible, pensé pour le rythme FPK.
           </h2>
           <p className="mt-4 text-lg leading-8 text-slate-700">
             FPK-EXPRESS transforme les pauses en créneaux organisés: moins d'attente, plus de choix, et une

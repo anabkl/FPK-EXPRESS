@@ -27,10 +27,10 @@ export default function MealGrid({ meals, orders, onSelectMeal, isLoading = fals
     <section className="mt-8">
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
         <div>
-          <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">Student side</p>
+          <p className="text-sm font-black uppercase tracking-[0.18em] text-primary">Menu étudiant</p>
           <h2 className="mt-2 text-3xl font-black tracking-normal text-navy">Commander sans attendre.</h2>
           <p className="mt-2 max-w-2xl text-base leading-7 text-slate-600">
-            Rechercher un repas, filtrer par besoin et réserver un créneau de pickup.
+            Rechercher un repas, filtrer par besoin et réserver une heure de retrait.
           </p>
         </div>
 
